@@ -1,37 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import type { ApiProblem, RentalDates, Vehicle } from "@/lib/rentals";
+import type { ApiProblem, RentalDates } from "@/lib/rentals";
 import { Icon, LoadingRows, RentalSteps } from "../rental-ui";
+import { money, type Trip, TripDetails } from "./rental-details";
 
-type Trip = RentalDates & { pickup_location: string; currency: string; amount_due_minor: number };
 type Quote = Trip & {
-  vehicle: Vehicle;
   quote_token: string;
   days: number;
   rental_minor: number;
   fee_minor: number;
   deposit_minor: number;
 };
-type Confirmation = Trip & { reference: string };
 type Review = { quote: Quote } | { error: string; retry: boolean };
-type BookingProblem = { message: string; next?: "refresh" | "search"; errors?: ApiProblem["errors"] };
+type BookingProblem = { message: string; next?: "refresh" | "search"; retry?: boolean; errors?: ApiProblem["errors"] };
 
 const contactFields = [
   { name: "name", label: "Full name", type: "text", maxLength: 120, autoComplete: "name" },
   { name: "email", label: "Email address", type: "email", maxLength: 254, autoComplete: "email" },
   { name: "phone", label: "Phone number", type: "tel", maxLength: 40, autoComplete: "tel" },
 ] as const;
-
-const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" });
-
-function money(amount: number, currencyCode: string) {
-  const currency = new Intl.NumberFormat("en", { style: "currency", currency: currencyCode, currencyDisplay: "code" });
-  const digits = currency.resolvedOptions().maximumFractionDigits ?? 2;
-  return currency.format(amount / 10 ** digits);
-}
 
 async function loadQuote(vehicleId: string, dates: RentalDates, signal: AbortSignal): Promise<Review> {
   try {
@@ -58,10 +49,10 @@ async function loadQuote(vehicleId: string, dates: RentalDates, signal: AbortSig
 }
 
 export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: string; dates: RentalDates; searchUrl: string }) {
+  const router = useRouter();
   const [review, setReview] = useState<Review>();
   const [quoteVersion, setQuoteVersion] = useState(0);
   const [bookingProblem, setBookingProblem] = useState<BookingProblem>();
-  const [confirmation, setConfirmation] = useState<Confirmation>();
   const [submitting, setSubmitting] = useState(false);
   const [contact, setContact] = useState({ name: "", email: "", phone: "" });
   const bookingRequest = useRef<AbortController | null>(null);
@@ -91,6 +82,7 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
     bookingRequest.current = controller;
     setSubmitting(true);
     setBookingProblem(undefined);
+    let booked = false;
 
     try {
       const response = await apiRequest("/api/bookings", {
@@ -100,8 +92,11 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
         signal: controller.signal,
       });
       if (response.ok) {
-        const booked: Confirmation = await response.json();
-        if (!controller.signal.aborted) setConfirmation(booked);
+        const { reference }: { reference: string } = await response.json();
+        if (!controller.signal.aborted) {
+          router.replace(`/book/confirmation/${encodeURIComponent(reference)}`);
+          booked = true;
+        }
         return;
       }
 
@@ -126,16 +121,17 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
       throw new Error("Unable to confirm booking.");
     } catch {
       if (!controller.signal.aborted) {
-        setBookingProblem({ message: "We couldn’t verify whether the booking went through. Check with the rental business before booking again." });
+        setBookingProblem({
+          message: "We couldn’t load your confirmation. Try this booking again to recover your reference.",
+          retry: true,
+        });
       }
     } finally {
-      if (!controller.signal.aborted) setSubmitting(false);
-      bookingRequest.current = null;
+      if (!booked) {
+        if (!controller.signal.aborted) setSubmitting(false);
+        bookingRequest.current = null;
+      }
     }
-  }
-
-  if (confirmation && review && "quote" in review) {
-    return <BookingConfirmation booking={confirmation} vehicle={review.quote.vehicle} />;
   }
 
   return (
@@ -154,11 +150,11 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
       )}
       {review && "quote" in review && (
         <div className="review-grid review-grid-with-guest">
-          <TripDetails trip={review.quote} vehicle={review.quote.vehicle} />
+          <TripDetails trip={review.quote} />
           <PriceReceipt quote={review.quote} />
           <section className="guest-panel" aria-labelledby="guest-heading">
             <h2 id="guest-heading">Your contact details</h2>
-            <form className="guest-form" onSubmit={(event) => void submitBooking(event, review.quote)}>
+            <form className="guest-form" method="post" onSubmit={(event) => void submitBooking(event, review.quote)}>
               {contactFields.map(({ name, label, ...input }) => {
                 const error = bookingProblem?.errors?.[name]?.[0];
                 return (
@@ -185,7 +181,10 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
                 ) : bookingProblem?.next === "refresh" ? (
                   <button className="button" type="button" onClick={refreshQuote}>Review updated quote <Icon name="arrow" /></button>
                 ) : (
-                  <button className="button" type="submit" disabled={submitting}>{submitting ? "Confirming booking…" : "Confirm booking"} <Icon name="arrow" /></button>
+                  <button className="button" type="submit" disabled={submitting}>
+                    {submitting ? "Confirming booking…" : bookingProblem?.retry ? "Retry booking" : "Confirm booking"}
+                    <Icon name="arrow" />
+                  </button>
                 )}
               </div>
             </form>
@@ -193,25 +192,6 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
         </div>
       )}
     </>
-  );
-}
-
-function TripDetails({ trip, vehicle }: { trip: Trip; vehicle: Vehicle }) {
-  return (
-    <section className="trip-panel" aria-labelledby="vehicle-heading">
-      <div className="trip-vehicle">
-        <div className="vehicle-icon"><Icon name="car" /></div>
-        <div className="vehicle-name">
-          <h2 id="vehicle-heading">{vehicle.display_label}</h2>
-          <p>{vehicle.make} {vehicle.model}</p>
-        </div>
-      </div>
-      <dl className="itinerary">
-        <div><dt>Pickup date</dt><dd><time dateTime={trip.pickup_date}>{dateFormatter.format(new Date(trip.pickup_date))}</time></dd></div>
-        <div><dt>Return date</dt><dd><time dateTime={trip.return_date}>{dateFormatter.format(new Date(trip.return_date))}</time></dd></div>
-        <div className="pickup-location"><dt><Icon name="pin" /> Pickup location</dt><dd>{trip.pickup_location}</dd></div>
-      </dl>
-    </section>
   );
 }
 
@@ -234,36 +214,5 @@ function PriceReceipt({ quote }: { quote: Quote }) {
         {quote.deposit_minor > 0 && <div><dt>Deposit</dt><dd>{money(quote.deposit_minor, quote.currency)}</dd></div>}
       </dl>
     </section>
-  );
-}
-
-function BookingConfirmation({ booking, vehicle }: { booking: Confirmation; vehicle: Vehicle }) {
-  const heading = useRef<HTMLHeadingElement>(null);
-  useEffect(() => heading.current?.focus(), []);
-
-  return (
-    <>
-      <RentalSteps current="confirmation" />
-      <header className="review-heading confirmation-heading">
-        <span className="confirmed-icon"><Icon name="check" /></span>
-        <div>
-          <h1 ref={heading} tabIndex={-1}>Booking confirmed</h1>
-          <p>Save your booking reference for pickup.</p>
-        </div>
-      </header>
-      <div className="review-grid">
-        <TripDetails trip={booking} vehicle={vehicle} />
-        <section className="receipt confirmation-receipt" aria-labelledby="reference-heading">
-          <div className="receipt-header">
-            <h2 id="reference-heading">Booking reference</h2>
-            <p className="booking-reference">{booking.reference}</p>
-          </div>
-          <dl className="price-breakdown">
-            <div><dt>Amount due at pickup</dt><dd>{money(booking.amount_due_minor, booking.currency)}</dd></div>
-          </dl>
-        </section>
-      </div>
-      <Link className="back-link confirmation-back" href="/"><Icon name="back" /> Back to vehicle search</Link>
-    </>
   );
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reservation extends Model
 {
@@ -15,11 +16,20 @@ class Reservation extends Model
         'guest_email',
         'guest_phone',
         'pickup_location',
+        'pickup_instructions',
+        'cancellation_terms',
         'currency',
         'amount_due_minor',
+        'booking_attempt_key',
+        'guest_session_key',
     ];
 
-    protected $hidden = ['guest_name', 'guest_email', 'guest_phone'];
+    protected $hidden = ['guest_name', 'guest_email', 'guest_phone', 'booking_attempt_key', 'guest_session_key'];
+
+    public function vehicle(): BelongsTo
+    {
+        return $this->belongsTo(Vehicle::class);
+    }
 
     protected function casts(): array
     {

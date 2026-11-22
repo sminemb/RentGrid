@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ReservationStatus;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -143,6 +144,83 @@ class CustomerBookingTest extends TestCase
             ->assertJsonValidationErrors('quote_token');
 
         $this->assertDatabaseCount('reservations', 0);
+    }
+
+    public function test_retry_recovers_the_reference_and_current_status_even_after_the_rental_date(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $quote = $this->quote($vehicle)->assertOk();
+        $reference = $this->book($quote)->assertCreated()->json('reference');
+
+        $this->book($quote)->assertOk()
+            ->assertJsonPath('reference', $reference)
+            ->assertJsonPath('status', 'confirmed');
+
+        $vehicle->reservations()->update(['status' => ReservationStatus::Cancelled]);
+        $vehicle->update(['is_published' => false]);
+        $this->travelTo(Carbon::parse('2026-06-11 00:00:00', 'UTC'));
+        $this->book($quote)->assertOk()
+            ->assertJsonPath('reference', $reference)
+            ->assertJsonPath('status', 'cancelled');
+
+        $this->assertDatabaseCount('reservations', 1);
+    }
+
+    public function test_booking_rejects_selection_changes_and_replays_from_another_session(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $quote = $this->quote($vehicle)->assertOk();
+        $payload = [...self::CONTACT, 'quote_token' => $quote->json('quote_token')];
+        $this->book($quote)->assertCreated();
+
+        $this->postJson('/api/bookings', [...$payload, 'pickup_date' => '2026-06-11'])
+            ->assertUnprocessable()->assertJsonValidationErrors('pickup_date');
+
+        $this->withUnencryptedCookie(config('session.cookie'), 'other-guest')
+            ->postJson('/api/bookings', $payload)
+            ->assertUnprocessable()->assertJsonValidationErrors('quote_token');
+
+        $this->assertDatabaseCount('reservations', 1);
+    }
+
+    public function test_confirmation_is_private_to_the_guest_session_and_uses_the_saved_terms(): void
+    {
+        config([
+            'rentgrid.pickup_instructions' => 'Bring your booking reference to the main desk.',
+            'rentgrid.cancellation_terms' => 'Call the demo desk to request a cancellation.',
+        ]);
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $quote = $this->quote($vehicle)->assertOk();
+        $reference = $this->book($quote)->assertCreated()->json('reference');
+        $url = "/api/bookings/{$reference}";
+
+        config([
+            'rentgrid.booking.daily_rate_minor' => 999_000,
+            'rentgrid.pickup_instructions' => 'New instructions.',
+            'rentgrid.cancellation_terms' => 'New terms.',
+        ]);
+        $this->getJson($url)
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonPath('vehicle.id', $vehicle->id)
+            ->assertJsonPath('vehicle.display_label', $vehicle->display_label)
+            ->assertJsonPath('pickup_date', '2026-06-10')
+            ->assertJsonPath('return_date', '2026-06-10')
+            ->assertJsonPath('pickup_location', 'Demo Rental Desk')
+            ->assertJsonPath('pickup_instructions', 'Bring your booking reference to the main desk.')
+            ->assertJsonPath('cancellation_terms', 'Call the demo desk to request a cancellation.')
+            ->assertJsonPath('amount_due_minor', 210_000)
+            ->assertJsonMissingPath('guest_email')
+            ->assertJsonMissingPath('guest_session_key');
+
+        $vehicle->reservations()->update(['status' => ReservationStatus::Cancelled]);
+        $this->getJson($url)->assertOk()->assertJsonPath('status', 'cancelled');
+
+        $this->withUnencryptedCookie(config('session.cookie'), 'other-guest')
+            ->getJson($url)
+            ->assertNotFound()
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonMissingPath('reference');
     }
 
     public function test_booking_rejects_a_changed_price(): void

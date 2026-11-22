@@ -27,6 +27,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_staff' => 'boolean',
         ];
+    }
+
+    public function hasStaffAccess(): bool
+    {
+        return $this->is_staff === true;
     }
 }

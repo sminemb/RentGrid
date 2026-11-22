@@ -10,6 +10,9 @@ class StoreBookingRequest extends FormRequest
     {
         return [
             'quote_token' => ['required', 'string', 'max:4096'],
+            'vehicle_id' => ['missing'],
+            'pickup_date' => ['missing'],
+            'return_date' => ['missing'],
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'string', 'email', 'max:254'],
             'phone' => ['required', 'string', 'max:40', 'regex:/\A\+?(?:[ ().-]*[0-9]){7,15}[ ().-]*\z/'],

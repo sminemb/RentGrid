@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
@@ -15,6 +16,7 @@ class BookingConcurrencyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['session.driver' => 'database']);
         config(['rentgrid.booking' => [
             'pickup_location' => 'Demo Rental Desk',
             'currency' => 'PHP',
@@ -89,14 +91,53 @@ class BookingConcurrencyTest extends TestCase
         }
     }
 
-    private function prepareBooking(Vehicle $vehicle, string $worker): Process
+    public function test_simultaneous_retries_return_the_same_reference(): void
     {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $quote = $this->quote($vehicle);
+        $first = $this->prepareBooking($vehicle, 'rentgrid-retry-first', $quote);
+        $second = $this->prepareBooking($vehicle, 'rentgrid-retry-second', $quote);
+
+        try {
+            DB::beginTransaction();
+            try {
+                Vehicle::query()->lockForUpdate()->findOrFail($vehicle->id);
+                $first->start();
+                $second->start();
+                $this->waitForDatabaseLocks([
+                    'rentgrid-retry-first' => $first,
+                    'rentgrid-retry-second' => $second,
+                ]);
+            } finally {
+                DB::rollBack();
+            }
+
+            $firstResult = $this->bookingResponse($first);
+            $secondResult = $this->bookingResponse($second);
+            $this->assertEqualsCanonicalizing([200, 201], [$firstResult['status'], $secondResult['status']]);
+            $this->assertSame($firstResult['body']['reference'], $secondResult['body']['reference']);
+            $this->assertDatabaseCount('reservations', 1);
+        } finally {
+            $first->stop(0);
+            $second->stop(0);
+        }
+    }
+
+    private function quote(Vehicle $vehicle): TestResponse
+    {
+        $this->app['session']->forgetDrivers();
         $pickup = today(config('rentgrid.business_timezone'))->addWeek();
-        $quote = $this->postJson('/api/booking-quotes', [
+
+        return $this->postJson('/api/booking-quotes', [
             'vehicle_id' => $vehicle->id,
             'pickup_date' => $pickup->toDateString(),
             'return_date' => $pickup->addDay()->toDateString(),
         ])->assertOk();
+    }
+
+    private function prepareBooking(Vehicle $vehicle, string $worker, ?TestResponse $quote = null): Process
+    {
+        $quote ??= $this->quote($vehicle);
         $cookie = config('session.cookie');
 
         return new Process([PHP_BINARY, __DIR__.'/../Support/submit-booking.php'], base_path(), [
@@ -104,7 +145,7 @@ class BookingConcurrencyTest extends TestCase
             'DB_CONNECTION' => 'pgsql',
             'DB_DATABASE' => 'rentgrid_test',
             'DB_URL' => '',
-            'SESSION_DRIVER' => 'array',
+            'SESSION_DRIVER' => 'database',
             'RENTAL_PICKUP_LOCATION' => config('rentgrid.booking.pickup_location'),
             'RENTAL_CURRENCY' => config('rentgrid.booking.currency'),
             'RENTAL_DAILY_RATE_MINOR' => (string) config('rentgrid.booking.daily_rate_minor'),

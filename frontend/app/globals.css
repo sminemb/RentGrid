@@ -581,6 +581,25 @@ input[aria-invalid="true"] { border-color: var(--error); }
 
 .confirmation-back { margin-top: 1.25rem; }
 
+.trip-note,
+.confirmation-note {
+  margin-top: 1.25rem;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.confirmation-note { max-width: 65ch; }
+
+.staff-shell { max-width: 34rem; }
+
+.staff-form {
+  display: grid;
+  gap: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.staff-form .button { justify-self: start; }
+
 @media (max-width: 62rem) {
   .search-hero { gap: 2rem; }
   .search-hero h1 { font-size: 3.75rem; }

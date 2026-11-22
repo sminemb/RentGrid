@@ -54,25 +54,26 @@ Follow the [implementation plan](plan.md) and [product specification](../SPEC.md
 
 ### Task 07 — Make booking submissions safe to retry
 
-- [ ] Persist a unique attempt key tied to the guest's reviewed booking. A retry from the same session returns the original reference and current status. A mismatched session or changed selection cannot reuse the attempt.
+- [x] Persist a unique attempt key tied to the guest's reviewed booking. A retry from the same session returns the original reference and current status. A mismatched session or changed selection cannot reuse the attempt.
 - **Verify** with simultaneous duplicate requests, a replay after losing the response, a replay after cancellation, and a request using an attempt from another guest session.
 - **Depends on** 06. **Scope** M. **Likely paths** `backend/app/Services/BookingService.php`, `backend/app/Models/Reservation.php`, `backend/database/migrations/`, `backend/tests/Feature/BookingRetryTest.php`.
 
 ### Task 08 — Complete the customer booking flow
 
-- [ ] Connect the Next.js review form to Laravel's booking and confirmation endpoints. After commit, show the reference, exact vehicle, dates, pickup details, and amount due. Handle stale availability and changed prices while preserving the selected dates.
+- [x] Connect the Next.js review form to Laravel's booking and confirmation endpoints. After commit, show the reference, exact vehicle, dates, pickup details, and amount due. Handle stale availability and changed prices while preserving the selected dates.
 - **Verify** with API feature tests and a browser walkthrough through Next.js covering confirmed booking, retry, changed quote, and a stale search result. Check confirmation access from a different guest session.
 - **Depends on** 07 and the approved pickup and cancellation text. **Scope** M. **Likely paths** `backend/routes/web.php`, `backend/app/Http/`, `backend/tests/Feature/CheckoutTest.php`, `frontend/app/book/`, `frontend/lib/api.ts`.
+- **Business wording** Configure the approved pickup instructions and cancellation terms when available. The confirmation uses the spec's contact wording for cancellation requests by default.
 
 ### Task 09 — Restrict staff access
 
-- [ ] Build Next.js staff sign-in and sign-out screens backed by Laravel session authentication. Rate-limit sign-in, rotate the session on successful sign-in, and invalidate it on sign-out. Add the staff gate and document server-side staff account provisioning.
+- [x] Build Next.js staff sign-in and sign-out screens backed by Laravel session authentication. Rate-limit sign-in, rotate the session on successful sign-in, and invalidate it on sign-out. Add the staff gate and document server-side staff account provisioning.
 - **Verify** sign-in and sign-out through the Next.js URL, then use Laravel feature tests to check direct staff API requests from guests and accounts without staff permission.
 - **Depends on** 01 and 03. **Scope** M. **Likely paths** `backend/routes/web.php`, `backend/app/Http/`, `backend/app/Providers/`, `backend/tests/Feature/StaffAccessTest.php`, `frontend/app/staff/`, `README.md`.
 
 **Checkpoint after Task 09**
 
-- [ ] A guest can complete a booking and recover its reference after retrying. Staff access checks pass for authorized and unauthorized accounts.
+- [x] A guest can complete a booking and recover its reference after retrying. Staff access checks pass for authorized and unauthorized accounts.
 
 ## Staff fleet and calendar
 

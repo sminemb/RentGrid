@@ -2,6 +2,8 @@
 
 return [
     'business_timezone' => env('BUSINESS_TIMEZONE', 'Asia/Manila'),
+    'pickup_instructions' => env('RENTAL_PICKUP_INSTRUCTIONS'),
+    'cancellation_terms' => env('RENTAL_CANCELLATION_TERMS'),
     'booking' => [
         'pickup_location' => env('RENTAL_PICKUP_LOCATION'),
         'currency' => env('RENTAL_CURRENCY'),

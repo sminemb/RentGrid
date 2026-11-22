@@ -21,7 +21,7 @@ class BookingQuoteController extends Controller
             (int) $selection['vehicle_id'],
             $selection['pickup_date'],
             $selection['return_date'],
-            $request->session()->getId(),
+            $request->session(),
         );
         $quote['vehicle'] = new VehicleResource($quote['vehicle']);
 
