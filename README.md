@@ -80,6 +80,8 @@ php artisan rentgrid:staff-create staff@example.test "Staff Member"
 
 The command prompts for the password and stores its hash. Accounts created by other means start without staff access. Open `/staff` on the Next.js origin to sign in and use the **Sign out** button there to end the session.
 
+Choose **Manage fleet** to add or edit an individual vehicle. New vehicles start withdrawn. Publish a listing to open it to bookings, or withdraw it to remove it from customer search and close it to new bookings. Open a vehicle’s availability calendar to view upcoming confirmed bookings and add or remove blocks. A new block starts today or later in the business time zone and includes both dates. The calendar rejects blocks that overlap a confirmed booking.
+
 Laravel handles `POST /api/staff/sign-in` and `POST /api/staff/sign-out` with its session guard and CSRF protection. Sign-in allows five attempts per minute for a given email and IP and thirty per IP. The staff page and `GET /api/staff/session` require an authenticated account that passes the `access-staff` gate.
 
 In production, put a trusted ingress in front of Next.js and restrict Next.js to that ingress. Keep Laravel private to its upstream proxy. Have the ingress replace `X-Forwarded-For` with the verified client IP. For example, an Nginx ingress that directly receives client connections can use `proxy_set_header X-Forwarded-For $remote_addr;`. The Next.js rewrite forwards that header to Laravel.

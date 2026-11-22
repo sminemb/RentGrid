@@ -601,6 +601,91 @@ input[aria-invalid="true"] { border-color: var(--error); }
 
 .staff-form .button { justify-self: start; }
 
+.fleet-shell { max-width: 65rem; }
+
+.fleet-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 1rem;
+}
+
+.fleet-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(6.5rem, auto) auto;
+  align-items: center;
+  gap: .875rem;
+  padding: 1rem 1.25rem;
+}
+
+.fleet-row + .fleet-row { border-top: 1px solid var(--line); }
+.fleet-row h2 { font-size: 1.125rem; }
+
+.fleet-status {
+  width: max-content;
+  padding: .125rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  color: var(--muted);
+  font-size: .875rem;
+  font-weight: 800;
+}
+
+.fleet-status[data-published="true"] {
+  background: var(--subtle);
+  color: var(--ink);
+}
+
+.fleet-detail {
+  display: grid;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.25fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+
+.fleet-sidebar, .availability-panel, .block-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.fleet-detail .trip-panel { grid-area: auto; }
+.availability-panel { overflow-wrap: anywhere; }
+
+.fleet-shell h1 { overflow-wrap: anywhere; }
+.calendar-jump { display: none; }
+.block-form .button { justify-self: start; }
+
+.block-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .875rem;
+}
+
+.calendar-agenda {
+  margin-top: .25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.calendar-agenda h3 { margin-bottom: .75rem; }
+.calendar-agenda ul { margin: 0; padding: 0; list-style: none; }
+
+.calendar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .375rem 1rem;
+  padding-block: .75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.calendar-row strong { font-variant-numeric: tabular-nums; }
+.calendar-row p { font-size: .875rem; }
+.calendar-row button { font-family: inherit; font-size: .875rem; cursor: pointer; }
+.calendar-row button:disabled { opacity: .65; cursor: wait; }
+
 @media (max-width: 62rem) {
   .search-hero { gap: 2rem; }
   .search-hero h1 { font-size: 3.75rem; }
@@ -640,6 +725,8 @@ input[aria-invalid="true"] { border-color: var(--error); }
   .total { font-size: 2.125rem; }
   .confirmation-heading { align-items: flex-start; }
   .booking-reference { font-size: 1.0625rem; }
+  .fleet-detail { grid-template-columns: minmax(0, 1fr); }
+  .calendar-jump { display: inline-flex; text-decoration: underline; }
 }
 
 @media (max-width: 30rem) {
@@ -652,6 +739,9 @@ input[aria-invalid="true"] { border-color: var(--error); }
   .action-link { gap: .25rem; font-size: .8125rem; padding-inline: .5rem; }
   .guest-form { grid-template-columns: 1fr; }
   .guest-action .button { width: 100%; min-width: 0; }
+  .fleet-row { grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; padding-inline: .875rem; }
+  .fleet-row .vehicle-icon { display: none; }
+  .fleet-row .action-link { grid-column: 2; grid-row: 1 / 3; }
 }
 
 @media (max-width: 23rem) {

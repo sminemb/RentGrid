@@ -79,19 +79,19 @@ Follow the [implementation plan](plan.md) and [product specification](../SPEC.md
 
 ### Task 10 — Maintain fleet listings
 
-- [ ] Build Next.js staff fleet screens for adding, editing, publishing, and withdrawing individual vehicles. Apply Laravel policies to the write endpoints. Publish and withdrawal use the same vehicle lock as booking. Withdrawal removes the listing from search and stops new submissions after the withdrawal commits.
+- [x] Build Next.js staff fleet screens for adding, editing, publishing, and withdrawing individual vehicles. Apply Laravel policies to the write endpoints. Publish and withdrawal use the same vehicle lock as booking. Withdrawal removes the listing from search and stops new submissions after the withdrawal commits.
 - **Verify** with policy and endpoint tests, a customer search before and after withdrawal, and a transaction test where withdrawal wins against a booking submission.
 - **Depends on** 06 and 09. **Scope** M. **Likely paths** `backend/app/Http/`, `backend/app/Policies/`, `backend/app/Services/`, `backend/tests/Feature/`, `frontend/app/staff/vehicles/`.
 
 ### Task 11 — Manage unavailable dates
 
-- [ ] Build a Next.js availability editor backed by policy-protected Laravel endpoints. Staff can add and remove blocks. A block cannot overlap a confirmed booking, and adding a block uses the same transaction lock as customer booking.
+- [x] Build a Next.js availability editor backed by policy-protected Laravel endpoints. Staff can add and remove blocks. A block cannot overlap a confirmed booking, and adding a block uses the same transaction lock as customer booking.
 - **Verify** by adding and removing a block, rejecting a block over an existing booking, and racing a new block against a booking on separate PostgreSQL connections. Assert exactly one write succeeds and search reflects it.
 - **Depends on** 06 and 09. **Scope** M. **Likely paths** `backend/app/Http/`, `backend/app/Policies/`, `backend/app/Services/AvailabilityService.php`, `backend/tests/Feature/`, `frontend/app/staff/vehicles/`.
 
 **Checkpoint after Task 11**
 
-- [ ] A staff listing or calendar change takes effect in the customer search. The booking, block, and withdrawal contention tests pass on PostgreSQL.
+- [x] A staff listing or calendar change takes effect in the customer search. The booking, block, and withdrawal contention tests pass on PostgreSQL.
 
 ## Cancellation and acceptance
 

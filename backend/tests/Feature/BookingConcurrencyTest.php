@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +47,7 @@ class BookingConcurrencyTest extends TestCase
                 DB::rollBack();
             }
 
-            $responses = array_column([$this->bookingResponse($first), $this->bookingResponse($second)], 'body', 'status');
+            $responses = array_column([$this->workerResponse($first), $this->workerResponse($second)], 'body', 'status');
             $this->assertEqualsCanonicalizing([201, 409], array_keys($responses));
             $this->assertSame('vehicle_unavailable', $responses[409]['code']);
             $this->assertDatabaseCount('reservations', 1);
@@ -75,13 +76,13 @@ class BookingConcurrencyTest extends TestCase
                 $first->start();
                 $this->waitForDatabaseLocks(['rentgrid-booking-first' => $first]);
                 $other->start();
-                $otherResult = $this->bookingResponse($other);
+                $otherResult = $this->workerResponse($other);
                 $this->assertSame(201, $otherResult['status']);
             } finally {
                 DB::rollBack();
             }
 
-            $firstResult = $this->bookingResponse($first);
+            $firstResult = $this->workerResponse($first);
             $this->assertSame(201, $firstResult['status']);
             $this->assertNotSame($firstResult['body']['reference'], $otherResult['body']['reference']);
             $this->assertDatabaseCount('reservations', 2);
@@ -112,14 +113,84 @@ class BookingConcurrencyTest extends TestCase
                 DB::rollBack();
             }
 
-            $firstResult = $this->bookingResponse($first);
-            $secondResult = $this->bookingResponse($second);
+            $firstResult = $this->workerResponse($first);
+            $secondResult = $this->workerResponse($second);
             $this->assertEqualsCanonicalizing([200, 201], [$firstResult['status'], $secondResult['status']]);
             $this->assertSame($firstResult['body']['reference'], $secondResult['body']['reference']);
             $this->assertDatabaseCount('reservations', 1);
         } finally {
             $first->stop(0);
             $second->stop(0);
+        }
+    }
+
+    public function test_a_staff_block_and_an_overlapping_booking_cannot_both_commit(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $date = today(config('rentgrid.business_timezone'))->addWeek()->toDateString();
+        $booking = $this->prepareBooking($vehicle, 'rentgrid-booking');
+        $block = $this->prepareStaffRequest(
+            'rentgrid-block', "/api/staff/vehicles/{$vehicle->id}/availability/blocks", 'POST',
+            ['starts_on' => $date, 'ends_on' => $date],
+        );
+
+        try {
+            DB::beginTransaction();
+            try {
+                Vehicle::query()->lockForUpdate()->findOrFail($vehicle->id);
+                $booking->start();
+                $block->start();
+                $this->waitForDatabaseLocks(['rentgrid-booking' => $booking, 'rentgrid-block' => $block]);
+            } finally {
+                DB::rollBack();
+            }
+
+            $bookingResult = $this->workerResponse($booking);
+            $blockResult = $this->workerResponse($block);
+            $this->assertEqualsCanonicalizing([201, 409], [$bookingResult['status'], $blockResult['status']]);
+            $blockWon = $blockResult['status'] === 201;
+            $this->assertDatabaseCount('availability_blocks', $blockWon ? 1 : 0);
+            $this->assertDatabaseCount('reservations', $blockWon ? 0 : 1);
+            $this->assertSame($blockWon ? 'vehicle_unavailable' : 'confirmed_booking_overlap',
+                $blockWon ? $bookingResult['body']['code'] : $blockResult['body']['code']);
+            $this->getJson("/api/vehicles/availability?pickup_date=$date&return_date=$date")
+                ->assertOk()->assertExactJson(['data' => []]);
+        } finally {
+            $booking->stop(0);
+            $block->stop(0);
+        }
+    }
+
+    public function test_withdrawal_commits_before_a_waiting_booking_and_closes_the_listing(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $booking = $this->prepareBooking($vehicle, 'rentgrid-booking');
+        $withdrawal = $this->prepareStaffRequest(
+            'rentgrid-withdrawal', "/api/staff/vehicles/{$vehicle->id}/publication", 'PUT',
+            ['is_published' => false],
+        );
+
+        try {
+            DB::beginTransaction();
+            try {
+                Vehicle::query()->lockForUpdate()->findOrFail($vehicle->id);
+                $withdrawal->start();
+                $this->waitForDatabaseLocks(['rentgrid-withdrawal' => $withdrawal]);
+                $booking->start();
+                $this->waitForDatabaseLocks(['rentgrid-withdrawal' => $withdrawal, 'rentgrid-booking' => $booking]);
+            } finally {
+                DB::rollBack();
+            }
+
+            $this->assertSame(200, $this->workerResponse($withdrawal)['status']);
+            $bookingResult = $this->workerResponse($booking);
+            $this->assertSame(409, $bookingResult['status']);
+            $this->assertSame('vehicle_unavailable', $bookingResult['body']['code']);
+            $this->assertFalse($vehicle->refresh()->is_published);
+            $this->assertDatabaseCount('reservations', 0);
+        } finally {
+            $withdrawal->stop(0);
+            $booking->stop(0);
         }
     }
 
@@ -138,9 +209,34 @@ class BookingConcurrencyTest extends TestCase
     private function prepareBooking(Vehicle $vehicle, string $worker, ?TestResponse $quote = null): Process
     {
         $quote ??= $this->quote($vehicle);
+
+        return $this->prepareRequest($worker, '/api/bookings', 'POST', $quote, [
+            'quote_token' => $quote->json('quote_token'),
+            'name' => 'Demo Customer',
+            'email' => 'demo@example.test',
+            'phone' => '+639175550100',
+        ]);
+    }
+
+    private function prepareStaffRequest(string $worker, string $path, string $method, array $payload): Process
+    {
+        $this->app['session']->forgetDrivers();
+        $this->app->forgetInstance('session.store');
+        $this->app['auth']->forgetGuards();
+        $staff = User::factory()->create(['is_staff' => true]);
+        $session = $this->postJson('/api/staff/sign-in', [
+            'email' => $staff->email,
+            'password' => 'password',
+        ])->assertNoContent();
+
+        return $this->prepareRequest($worker, $path, $method, $session, $payload);
+    }
+
+    private function prepareRequest(string $worker, string $path, string $method, TestResponse $session, array $payload): Process
+    {
         $cookie = config('session.cookie');
 
-        return new Process([PHP_BINARY, __DIR__.'/../Support/submit-booking.php'], base_path(), [
+        return new Process([PHP_BINARY, __DIR__.'/../Support/submit-json-request.php'], base_path(), [
             'APP_ENV' => 'testing',
             'DB_CONNECTION' => 'pgsql',
             'DB_DATABASE' => 'rentgrid_test',
@@ -153,13 +249,10 @@ class BookingConcurrencyTest extends TestCase
             'RENTAL_DEPOSIT_MINOR' => '0',
         ], json_encode([
             'worker' => $worker,
-            'cookies' => [$cookie => $quote->getCookie($cookie, false)->getValue()],
-            'booking' => [
-                'quote_token' => $quote->json('quote_token'),
-                'name' => 'Demo Customer',
-                'email' => 'demo@example.test',
-                'phone' => '+639175550100',
-            ],
+            'cookies' => [$cookie => $session->getCookie($cookie, false)->getValue()],
+            'path' => $path,
+            'method' => $method,
+            'payload' => $payload,
         ], JSON_THROW_ON_ERROR), 20);
     }
 
@@ -173,6 +266,7 @@ class BookingConcurrencyTest extends TestCase
             $waiting = DB::table('pg_stat_activity')
                 ->whereIn('application_name', array_keys($workers))
                 ->where('wait_event_type', 'Lock')
+                ->where('query', 'ilike', '%"vehicles"%for update%')
                 ->count();
             if ($waiting === count($workers)) {
                 return;
@@ -184,10 +278,10 @@ class BookingConcurrencyTest extends TestCase
             usleep(50_000);
         } while (microtime(true) < $deadline);
 
-        $this->fail('The booking requests did not wait on the vehicle lock.');
+        $this->fail('The concurrent requests did not wait on the vehicle lock.');
     }
 
-    private function bookingResponse(Process $worker): array
+    private function workerResponse(Process $worker): array
     {
         $this->assertSame(0, $worker->wait(), $worker->getErrorOutput());
 
