@@ -6,25 +6,25 @@ Follow the [implementation plan](plan.md) and [product specification](../SPEC.md
 
 ### Task 01 — Bootstrap the application
 
-- [ ] Scaffold Laravel 13 in `backend/` and Next.js 16 with the App Router and TypeScript in `frontend/`. Commit both lockfiles and document the PostgreSQL and local API rewrite setup. Add the `/api/session` endpoint and a shared browser API client that supports session cookies and CSRF headers.
+- [x] Scaffold Laravel 13 in `backend/` and Next.js 16 with the App Router and TypeScript in `frontend/`. Commit both lockfiles and document the PostgreSQL and local API rewrite setup. Add the `/api/session` endpoint and a shared browser API client that supports session cookies and CSRF headers.
 - **Verify** by installing from the lockfiles, migrating an empty PostgreSQL database, building Next.js, and checking that the session endpoint returns JSON and sets Laravel's cookies through the Next.js URL.
 - **Depends on** none. **Scope** M, framework scaffolds and configuration. **Likely paths** `backend/`, `frontend/`, `README.md`.
 
 ### Task 02 — Store individual fleet vehicles
 
-- [ ] Persist each vehicle's stable ID, public display label, make and model, and publication state. Two otherwise identical vehicles can be entered and distinguished.
+- [x] Persist each vehicle's stable ID, public display label, make and model, and publication state. Two otherwise identical vehicles can be entered and distinguished.
 - **Verify** with Laravel model tests for vehicle identity and publication state and a synthetic two-vehicle fixture.
 - **Depends on** 01. **Scope** M. **Likely paths** `backend/app/Models/Vehicle.php`, `backend/database/`, `backend/tests/Feature/FleetTest.php`.
 
 ### Task 03 — Model the rental calendar
 
-- [ ] Implement the confirmed date policy in a shared availability module. Persist reservation states and staff availability blocks with their vehicle and date range. A published vehicle is available for a range only when no confirmed reservation or block overlaps it.
+- [x] Implement the confirmed date policy in a shared availability module. Persist reservation states and staff availability blocks with their vehicle and date range. A published vehicle is available for a range only when no confirmed reservation or block overlaps it.
 - **Verify** with tests for same-day rentals, the return-day boundary, reversed and past dates, business-local today, and overlap against confirmed, cancelled, and blocked periods.
 - **Depends on** 02 and the rental timing decision. **Scope** M. **Likely paths** `backend/app/Models/`, `backend/database/migrations/`, `backend/app/Services/AvailabilityService.php`, `backend/tests/Feature/AvailabilityTest.php`.
 
 **Checkpoint after Task 03**
 
-- [ ] An empty PostgreSQL database migrates successfully, and a Laravel JSON response reaches the browser through Next.js. The date-policy tests pass and the fixtures distinguish two vehicles of the same make and model.
+- [x] An empty PostgreSQL database migrates successfully, and a Laravel JSON response reaches the browser through Next.js. The date-policy tests pass and the fixtures distinguish two vehicles of the same make and model.
 
 ## Customer search and booking core
 

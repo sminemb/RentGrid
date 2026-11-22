@@ -8,10 +8,11 @@ Let customers book a specific vehicle from one rental business’s fleet. A cust
 
 - Customers book as guests using their name, email address, and phone number.
 - The business operates from one pickup and return location and uses that location’s time zone for rental dates.
-- Reservations cover calendar days, including both the pickup and return dates. A same-day rental occupies one full calendar day.
 - The booking confirmation appears on screen. Customers contact the business to request changes or cancellations.
 
 ## Requirements
+
+Rentals cover calendar days, including both the pickup and return dates. A same-day rental occupies one full calendar day.
 
 | ID | Requirement |
 | --- | --- |
@@ -43,6 +44,5 @@ Let customers book a specific vehicle from one rental business’s fleet. A cust
 
 ## Business rules to confirm
 
-- Do customers need pickup and return times or same-day turnaround between rentals?
 - How should the business calculate rental charges, and what fees or deposits should customers see before booking?
 - What cancellation rules and pickup instructions should customers see on the confirmation?

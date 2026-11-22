@@ -17,7 +17,7 @@ The [product specification](../SPEC.md) defines a customer booking flow for a si
 
 ## Booking and availability decisions
 
-- Use a persistent identifier for each vehicle and a customer-facing label that distinguishes similar vehicles. Store confirmed and cancelled reservations so staff can find either state by booking reference. Use one shared overlap rule for reservations and staff blocks. Under the draft calendar-day policy, two ranges overlap if each starts on or before the other ends. Evaluate the current date in the business time zone.
+- Use a persistent identifier for each vehicle and a customer-facing label that distinguishes similar vehicles. Store confirmed and cancelled reservations so staff can find either state by booking reference. Use one shared overlap rule for reservations and staff blocks. Under the confirmed calendar-day policy, two ranges overlap if each starts on or before the other ends. Evaluate the current date in the business time zone.
 - Serialize writes that affect availability for a particular vehicle. Inside `DB::transaction()`, lock the vehicle row by ID using `lockForUpdate()`. Read its current publication state and check date conflicts after taking the lock, then write the change. Booking, availability blocks, cancellations, and publication changes use the same vehicle lock. Under PostgreSQL Read Committed, the post-lock queries see changes committed by the previous writer. Return the confirmation after the reservation commits. [Laravel pessimistic locking](https://laravel.com/docs/13.x/queries#pessimistic-locking) · [PostgreSQL transaction isolation](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-READ-COMMITTED)
 - Issue a booking attempt key tied to the guest session and the reviewed vehicle, dates, and price. Enforce uniqueness in the database. A replay from the same session returns the original reference and current status, including after cancellation. Handle a uniqueness race by looking up the committed booking. Validate booking details on the server and require a new review if the price has changed. Store the agreed amount with the booking so later rate edits do not change the amount shown on the confirmation.
 - Keep customer confirmation in the booking guest session. Use Laravel's session guard for staff sign-in with server-provisioned accounts. Protect `/staff` with `auth` and a staff-access gate, and authorize fleet and reservation actions with policies. Staff can search by reference and invoke named operations such as cancellation. Route these writes through the same services used by the booking flow. Keep customer contact details out of public search results and application logs. [Laravel authentication](https://laravel.com/docs/13.x/authentication) · [Laravel authorization](https://laravel.com/docs/13.x/authorization)
@@ -44,7 +44,7 @@ Staff access setup can start after the foundation while customer screens are in 
 | Staff tools expose guest details or bypass the booking rules. | Test guest, non-staff, and unauthorized staff access. Verify policy checks on staff routes and exercise staff actions against the booking and availability services. |
 | Session or CSRF cookies fail across the frontend proxy. | Test guest confirmation and staff sign-in, sign-out, and staff actions through the Next.js URL. Verify that direct API calls from a separate session are denied access to protected records. |
 
-After Task 01, configure `backend/.env` for local PostgreSQL and `backend/.env.testing` for the dedicated test database. Run these commands from the repository root in a backend terminal. On first setup, run `php artisan key:generate` after installing dependencies if `APP_KEY` is empty.
+After Task 01, follow the [local setup instructions](../README.md#local-setup) to configure both PostgreSQL databases and generate the application keys. Run these commands from the repository root in a backend terminal.
 
 ```powershell
 Set-Location backend
@@ -70,6 +70,5 @@ Use PHPUnit through `php artisan test`. Use Laravel's HTTP testing tools for val
 
 ## Business decisions still open
 
-- **Rental timing.** The plan assumes whole calendar days, including the return day. Confirm this before implementing Task 03, or amend the spec if timed pickup, timed return, or same-day turnaround is required.
 - **Pricing.** Task 05 needs the currency, rate calculation, fees and deposits, and the amount payable at pickup. Build review-screen fixtures while these are under discussion.
 - **Pickup and cancellations.** Task 08 needs the pickup address and the instructions and cancellation terms to display. Task 12 needs any rules staff must enforce when cancelling. The draft still assumes guest checkout, one location, and an on-screen confirmation.
