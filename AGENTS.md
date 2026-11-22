@@ -1,5 +1,9 @@
 At the start of each session, load and follow the `using-agent-skills` skill before starting work.
 
+## Frontend design
+
+Use the `impeccable:impeccable` skill when designing, building, or improving frontend interfaces.
+
 ## Browser testing
 
 Use Playwright for browser testing.
