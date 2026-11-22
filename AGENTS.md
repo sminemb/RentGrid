@@ -6,7 +6,7 @@ Use the `impeccable:impeccable` skill when designing, building, or improving fro
 
 ## Browser testing
 
-Use Playwright for browser testing.
+Use Playwright for browser-based testing and verification.
 
 ## Object-oriented programming
 
