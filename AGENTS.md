@@ -1,4 +1,4 @@
-At the start of each session, load the `using-agent-skills` skill by reading `C:/Users/Andrey/.agents/skills/using-agent-skills/SKILL.md`. Use it to identify and apply the skills relevant to the task.
+At the start of each session, load and follow the `using-agent-skills` skill before starting work.
 
 ## Object-oriented programming
 
