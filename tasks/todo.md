@@ -30,25 +30,25 @@ Follow the [implementation plan](plan.md) and [product specification](../SPEC.md
 
 ### Task 04 — Find available vehicles
 
-- [ ] Build a Next.js date search and a Laravel JSON availability endpoint. Show field errors and exact-vehicle results from the server. Keep submitted dates when results are empty so customers can revise the search.
+- [x] Build a Next.js date search and a Laravel JSON availability endpoint. Show field errors and exact-vehicle results from the server. Keep submitted dates when results are empty so customers can revise the search.
 - **Verify** by exercising valid, invalid, empty, and mixed-availability searches through the API and the Next.js page.
 - **Depends on** 03. **Scope** M. **Likely paths** `backend/routes/web.php`, `backend/app/Http/`, `backend/tests/Feature/VehicleSearchTest.php`, `frontend/app/`, `frontend/lib/api.ts`.
 
 ### Task 05 — Review a rental before submitting
 
-- [ ] Build a Next.js review page for the selected vehicle, dates, pickup location, and amount due. Use the shared browser client for the session-bound quote request. Calculate the quote and define validation of the guest's name, email address, and phone number in Laravel.
+- [x] Build a Next.js review page for the selected vehicle, dates, pickup location, and amount due. Use the shared browser client for the session-bound quote request. Calculate the quote and define validation of the guest's name, email address, and phone number in Laravel.
 - **Verify** the quote and contact-field validation in Laravel, and check the displayed quote and session cookies through the Next.js URL. Include fees and deposits when the business rules require them.
 - **Depends on** 04 and the pricing and pickup location decisions. **Scope** M. **Likely paths** `backend/routes/web.php`, `backend/app/Http/`, `backend/app/Services/`, `frontend/app/book/`, `backend/tests/Feature/`.
 
 ### Task 06 — Save reservations atomically
 
-- [ ] Use Laravel's `DB::transaction()` and `lockForUpdate()` on the selected vehicle. Recheck publication, date availability, and the reviewed price before saving the confirmed booking with its unique reference and agreed amount. Return a conflict if a competing reservation wins or the price has changed.
+- [x] Use Laravel's `DB::transaction()` and `lockForUpdate()` on the selected vehicle. Recheck publication, date availability, and the reviewed price before saving the confirmed booking with its unique reference and agreed amount. Return a conflict if a competing reservation wins or the price has changed.
 - **Verify** with separate PostgreSQL connections submitting overlapping requests for the same vehicle. Assert one confirmation and one committed reservation. Check that two independent vehicles can both be booked.
 - **Depends on** 03 and 05. **Scope** M. **Likely paths** `backend/app/Services/BookingService.php`, `backend/app/Models/Reservation.php`, `backend/database/migrations/`, `backend/tests/Feature/BookingConcurrencyTest.php`.
 
 **Checkpoint after Task 06**
 
-- [ ] A customer can search and review the selected rental. The competing-booking test proves exactly one reservation commits for overlapping dates on one vehicle.
+- [x] A customer can search and review the selected rental. The competing-booking test proves exactly one reservation commits for overlapping dates on one vehicle.
 
 ## Confirmation and staff access
 

@@ -11,12 +11,21 @@ class AvailabilityService
     /** @return Builder<Vehicle> */
     public function availableVehicles(string $pickupDate, string $returnDate): Builder
     {
-        $period = RentalPeriod::fromDates(
+        return $this->vehiclesAvailableFor($this->period($pickupDate, $returnDate));
+    }
+
+    public function period(string $pickupDate, string $returnDate): RentalPeriod
+    {
+        return RentalPeriod::fromDates(
             $pickupDate,
             $returnDate,
             today(config('rentgrid.business_timezone'))->toDateString(),
         );
+    }
 
+    /** @return Builder<Vehicle> */
+    public function vehiclesAvailableFor(RentalPeriod $period): Builder
+    {
         return Vehicle::query()
             ->where('is_published', true)
             ->whereDoesntHave('reservations', function (Builder $query) use ($period) {

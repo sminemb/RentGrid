@@ -45,3 +45,19 @@ Browser code can call `apiRequest("/api/session")` from `frontend/lib/api.ts` be
 ## Rental calendar
 
 Rentals and staff blocks occupy all calendar days in their range, including both endpoints. A same-day rental occupies one day. The pickup location's local date determines whether a pickup is in the past. A published vehicle is available when it has no overlapping confirmed reservation or staff block.
+
+## Customer search and quotes
+
+Search from the home page and select a vehicle to review the dates, pickup location, and amount due. Configure the booking terms in `backend/.env`. The following values are synthetic examples for local testing.
+
+```dotenv
+RENTAL_PICKUP_LOCATION="Demo Rental Desk (synthetic fixture)"
+RENTAL_CURRENCY=PHP
+RENTAL_DAILY_RATE_MINOR=150000
+RENTAL_FEE_MINOR=10000
+RENTAL_DEPOSIT_MINOR=50000
+```
+
+Set an ISO 4217 currency code and enter amounts in its smallest unit, such as centavos for PHP. The quote charges the daily rate for each day from pickup through return, plus any one-time fee and deposit. The example charges PHP 1,500 per day, a PHP 100 fee, and a PHP 500 deposit. Omit the fee and deposit settings when they are zero. Quotes require a configured pickup location, currency, and daily rate.
+
+`GET /api/vehicles/availability` accepts `pickup_date` and `return_date` in `YYYY-MM-DD` format. After bootstrapping the session with `GET /api/session`, `POST /api/booking-quotes` accepts those dates and `vehicle_id`. `POST /api/bookings` accepts the returned `quote_token` and the guest's `name`, `email`, and `phone`. Both POST requests use the same session and CSRF cookie. Booking returns a reference on success or a conflict with `vehicle_unavailable` or `price_changed` when the customer needs a fresh search or quote.

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use DateTimeImmutable;
 use Illuminate\Validation\ValidationException;
 
 final readonly class RentalPeriod
@@ -25,6 +26,14 @@ final readonly class RentalPeriod
         }
 
         return new self($pickupDate, $returnDate);
+    }
+
+    public function days(): int
+    {
+        $pickup = new DateTimeImmutable($this->pickupDate.' UTC');
+        $return = new DateTimeImmutable($this->returnDate.' UTC');
+
+        return (int) $pickup->diff($return)->format('%a') + 1;
     }
 
     private static function validateDate(string $date, string $field, string $label): void
