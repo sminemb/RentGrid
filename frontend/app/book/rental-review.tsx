@@ -15,8 +15,10 @@ type Quote = Trip & {
   fee_minor: number;
   deposit_minor: number;
 };
-type Review = { quote: Quote } | { error: string; retry: boolean };
-type BookingProblem = { message: string; next?: "refresh" | "search"; retry?: boolean; errors?: ApiProblem["errors"] };
+type Contact = { name: string; email: string; phone: string };
+type PendingReview = { quote: Quote; pendingContact: Contact };
+type Review = { quote: Quote; pendingContact?: Contact } | { error: string; retry: boolean };
+type BookingProblem = { message: string; next?: "refresh" | "search"; errors?: ApiProblem["errors"] };
 
 const contactFields = [
   { name: "name", label: "Full name", type: "text", maxLength: 120, autoComplete: "name" },
@@ -24,7 +26,49 @@ const contactFields = [
   { name: "phone", label: "Phone number", type: "tel", maxLength: 40, autoComplete: "tel" },
 ] as const;
 
-async function loadQuote(vehicleId: string, dates: RentalDates, signal: AbortSignal): Promise<Review> {
+class PendingBooking {
+  private readonly key: string;
+
+  constructor(vehicleId: string, { pickup_date, return_date }: RentalDates) {
+    this.key = `rentgrid:pending-booking:${JSON.stringify([vehicleId, pickup_date, return_date])}`;
+  }
+
+  read(): PendingReview | undefined {
+    try {
+      const saved = sessionStorage.getItem(this.key);
+      if (!saved) return;
+
+      const attempt: PendingReview | null = JSON.parse(saved);
+      if (typeof attempt?.quote?.quote_token === "string" &&
+        contactFields.every(({ name }) => typeof attempt.pendingContact?.[name] === "string")) {
+        return attempt;
+      }
+    } catch {
+      // A missing or unreadable attempt can fall back to a fresh quote.
+    }
+  }
+
+  save(quote: Quote, pendingContact: Contact) {
+    try {
+      sessionStorage.setItem(this.key, JSON.stringify({ quote, pendingContact }));
+    } catch {
+      // The open checkout can still recover the attempt when tab storage is unavailable.
+    }
+  }
+
+  clear() {
+    try {
+      sessionStorage.removeItem(this.key);
+    } catch {
+      // Tab storage may be unavailable.
+    }
+  }
+}
+
+async function loadReview(vehicleId: string, dates: RentalDates, signal: AbortSignal): Promise<Review> {
+  const pending = new PendingBooking(vehicleId, dates).read();
+  if (pending) return pending;
+
   try {
     const session = await apiRequest("/api/session", { signal, cache: "no-store" });
     if (!session.ok) throw new Error("Unable to open rental session.");
@@ -54,14 +98,17 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
   const [quoteVersion, setQuoteVersion] = useState(0);
   const [bookingProblem, setBookingProblem] = useState<BookingProblem>();
   const [submitting, setSubmitting] = useState(false);
-  const [contact, setContact] = useState({ name: "", email: "", phone: "" });
+  const [contact, setContact] = useState<Contact>({ name: "", email: "", phone: "" });
   const bookingRequest = useRef<AbortController | null>(null);
   const { pickup_date, return_date } = dates;
+  const pendingContact = review && "quote" in review ? review.pendingContact : undefined;
 
   useEffect(() => {
     const controller = new AbortController();
-    void loadQuote(vehicleId, { pickup_date, return_date }, controller.signal).then((result) => {
-      if (!controller.signal.aborted) setReview(result);
+    void loadReview(vehicleId, { pickup_date, return_date }, controller.signal).then((result) => {
+      if (controller.signal.aborted) return;
+      if ("quote" in result && result.pendingContact) setContact(result.pendingContact);
+      setReview(result);
     });
     return () => controller.abort();
   }, [vehicleId, pickup_date, return_date, quoteVersion]);
@@ -79,7 +126,11 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
     if (bookingRequest.current || bookingProblem?.next) return;
 
     const controller = new AbortController();
+    const pending = new PendingBooking(vehicleId, dates);
+    const submittedContact = pendingContact ?? contact;
     bookingRequest.current = controller;
+    pending.save(quote, submittedContact);
+    setReview({ quote, pendingContact: submittedContact });
     setSubmitting(true);
     setBookingProblem(undefined);
     let booked = false;
@@ -88,13 +139,14 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
       const response = await apiRequest("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...contact, quote_token: quote.quote_token }),
+        body: JSON.stringify({ ...submittedContact, quote_token: quote.quote_token }),
         signal: controller.signal,
       });
       if (response.ok) {
-        const { reference }: { reference: string } = await response.json();
-        if (!controller.signal.aborted) {
+        const reference: unknown = (await response.json())?.reference;
+        if (!controller.signal.aborted && typeof reference === "string" && reference) {
           router.replace(`/book/confirmation/${encodeURIComponent(reference)}`);
+          pending.clear();
           booked = true;
         }
         return;
@@ -111,21 +163,16 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
           : problem.message;
 
         const hasContactErrors = contactFields.some(({ name }) => problem.errors?.[name]?.length);
+        pending.clear();
+        setReview({ quote });
         setBookingProblem({
           message: hasContactErrors ? "Check the highlighted details and try again." : message ?? "Check your details and try again.",
           next: needsQuote ? "refresh" : next,
           errors: problem.errors,
         });
-        return;
       }
-      throw new Error("Unable to confirm booking.");
     } catch {
-      if (!controller.signal.aborted) {
-        setBookingProblem({
-          message: "We couldn’t load your confirmation. Try this booking again to recover your reference.",
-          retry: true,
-        });
-      }
+      // Keep the original submission until we get a confirmation or a definite rejection.
     } finally {
       if (!booked) {
         if (!controller.signal.aborted) setSubmitting(false);
@@ -164,9 +211,10 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
                       {...input}
                       id={name}
                       name={name}
-                      value={contact[name]}
+                      value={(pendingContact ?? contact)[name]}
                       onChange={(event) => setContact({ ...contact, [name]: event.target.value })}
-                      required
+                      readOnly={!!pendingContact}
+                      required={!pendingContact}
                       aria-invalid={error ? true : undefined}
                       aria-describedby={error ? `${name}-error` : undefined}
                     />
@@ -175,6 +223,9 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
                 );
               })}
               {bookingProblem && <p className="error booking-error" role="alert">{bookingProblem.message}</p>}
+              {pendingContact && !submitting && (
+                <p className="error booking-error" role="alert">Your booking may already be saved. Recover your confirmation using the details you submitted.</p>
+              )}
               <div className="guest-action">
                 {bookingProblem?.next === "search" ? (
                   <Link className="button" href={searchUrl}>Find another vehicle <Icon name="arrow" /></Link>
@@ -182,7 +233,7 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
                   <button className="button" type="button" onClick={refreshQuote}>Review updated quote <Icon name="arrow" /></button>
                 ) : (
                   <button className="button" type="submit" disabled={submitting}>
-                    {submitting ? "Confirming booking…" : bookingProblem?.retry ? "Retry booking" : "Confirm booking"}
+                    {submitting ? "Confirming booking…" : pendingContact ? "Recover confirmation" : "Confirm booking"}
                     <Icon name="arrow" />
                   </button>
                 )}

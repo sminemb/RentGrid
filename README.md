@@ -66,6 +66,8 @@ Set an ISO 4217 currency code and enter amounts in its smallest unit, such as ce
 
 The browser opens `/book/confirmation/{reference}` after submission. It reads the saved booking from `GET /api/bookings/{reference}`, which requires the original guest session and returns a private, non-cacheable response. Configure `RENTAL_PICKUP_INSTRUCTIONS` and `RENTAL_CANCELLATION_TERMS` to include approved business wording. RentGrid saves that wording at booking time. With no configured cancellation terms, the confirmation directs guests to contact the business to request changes or cancellations.
 
+If the confirmation response is interrupted, the guest can choose **Recover confirmation** on the same checkout, including after a reload in the same tab. Recovery uses the original quote and contact details.
+
 Quotes issued before booking retries were added require a fresh review.
 
 ## Staff access
@@ -79,3 +81,7 @@ php artisan rentgrid:staff-create staff@example.test "Staff Member"
 The command prompts for the password and stores its hash. Accounts created by other means start without staff access. Open `/staff` on the Next.js origin to sign in and use the **Sign out** button there to end the session.
 
 Laravel handles `POST /api/staff/sign-in` and `POST /api/staff/sign-out` with its session guard and CSRF protection. Sign-in allows five attempts per minute for a given email and IP and thirty per IP. The staff page and `GET /api/staff/session` require an authenticated account that passes the `access-staff` gate.
+
+In production, put a trusted ingress in front of Next.js and restrict Next.js to that ingress. Keep Laravel private to its upstream proxy. Have the ingress replace `X-Forwarded-For` with the verified client IP. For example, an Nginx ingress that directly receives client connections can use `proxy_set_header X-Forwarded-For $remote_addr;`. The Next.js rewrite forwards that header to Laravel.
+
+Set `TRUSTED_PROXY_IPS` in the Laravel environment to the comma-separated IPv4 or IPv6 addresses that connect directly to Laravel. With the Next.js rewrite, use the Next.js server addresses as seen by Laravel. Rebuild Laravel's configuration cache after changing the setting. When the list is empty, Laravel uses the connection IP.

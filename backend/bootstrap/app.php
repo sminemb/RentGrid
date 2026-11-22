@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR);
         $middleware->redirectGuestsTo('/staff/sign-in');
     })
     ->withExceptions(function (Exceptions $exceptions): void {

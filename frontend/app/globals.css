@@ -548,6 +548,7 @@ input[aria-invalid="true"] { border-color: var(--error); }
 }
 
 .guest-form > :first-child, .guest-action, .booking-error { grid-column: 1 / -1; }
+.guest-form input[readonly] { background: var(--subtle); }
 .guest-action { display: flex; }
 .guest-action .button { min-width: 12rem; }
 
