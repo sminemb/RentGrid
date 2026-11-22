@@ -1,0 +1,371 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-22T13:41:02.793Z",
+  "title": "Design System: RentGrid",
+  "extensions": {
+    "colorMeta": {
+      "peach": {
+        "role": "primary",
+        "displayName": "Peach",
+        "tonalRamp": [
+          "oklch(15% 0.0623 47.5)",
+          "oklch(26% 0.0623 47.5)",
+          "oklch(38% 0.0623 47.5)",
+          "oklch(49% 0.0623 47.5)",
+          "oklch(60% 0.0623 47.5)",
+          "oklch(72% 0.0623 47.5)",
+          "oklch(83% 0.0623 47.5)",
+          "oklch(95% 0.0623 47.5)"
+        ]
+      },
+      "peach-hover": {
+        "role": "primary",
+        "displayName": "Peach Hover",
+        "tonalRamp": [
+          "oklch(15% 0.0768 47.3)",
+          "oklch(26% 0.0768 47.3)",
+          "oklch(38% 0.0768 47.3)",
+          "oklch(49% 0.0768 47.3)",
+          "oklch(60% 0.0768 47.3)",
+          "oklch(72% 0.0768 47.3)",
+          "oklch(83% 0.0768 47.3)",
+          "oklch(95% 0.0768 47.3)"
+        ]
+      },
+      "peach-pressed": {
+        "role": "primary",
+        "displayName": "Peach Pressed",
+        "tonalRamp": [
+          "oklch(15% 0.0881 46.5)",
+          "oklch(26% 0.0881 46.5)",
+          "oklch(38% 0.0881 46.5)",
+          "oklch(49% 0.0881 46.5)",
+          "oklch(60% 0.0881 46.5)",
+          "oklch(72% 0.0881 46.5)",
+          "oklch(83% 0.0881 46.5)",
+          "oklch(95% 0.0881 46.5)"
+        ]
+      },
+      "rust-focus": {
+        "role": "secondary",
+        "displayName": "Rust Focus",
+        "tonalRamp": [
+          "oklch(15% 0.1117 38.4)",
+          "oklch(26% 0.1117 38.4)",
+          "oklch(38% 0.1117 38.4)",
+          "oklch(49% 0.1117 38.4)",
+          "oklch(60% 0.1117 38.4)",
+          "oklch(72% 0.1117 38.4)",
+          "oklch(83% 0.1117 38.4)",
+          "oklch(95% 0.1117 38.4)"
+        ]
+      },
+      "red-error": {
+        "role": "secondary",
+        "displayName": "Red Error",
+        "tonalRamp": [
+          "oklch(15% 0.1454 30.1)",
+          "oklch(26% 0.1454 30.1)",
+          "oklch(38% 0.1454 30.1)",
+          "oklch(49% 0.1454 30.1)",
+          "oklch(60% 0.1454 30.1)",
+          "oklch(72% 0.1454 30.1)",
+          "oklch(83% 0.1454 30.1)",
+          "oklch(95% 0.1454 30.1)"
+        ]
+      },
+      "pine-ink": {
+        "role": "neutral",
+        "displayName": "Pine Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0200 179.9)",
+          "oklch(26% 0.0200 179.9)",
+          "oklch(38% 0.0200 179.9)",
+          "oklch(49% 0.0200 179.9)",
+          "oklch(60% 0.0200 179.9)",
+          "oklch(72% 0.0200 179.9)",
+          "oklch(83% 0.0200 179.9)",
+          "oklch(95% 0.0200 179.9)"
+        ]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0177 157.7)",
+          "oklch(26% 0.0177 157.7)",
+          "oklch(38% 0.0177 157.7)",
+          "oklch(49% 0.0177 157.7)",
+          "oklch(60% 0.0177 157.7)",
+          "oklch(72% 0.0177 157.7)",
+          "oklch(83% 0.0177 157.7)",
+          "oklch(95% 0.0177 157.7)"
+        ]
+      },
+      "warm-ground": {
+        "role": "neutral",
+        "displayName": "Warm Ground",
+        "tonalRamp": [
+          "oklch(15% 0.0124 91.5)",
+          "oklch(26% 0.0124 91.5)",
+          "oklch(38% 0.0124 91.5)",
+          "oklch(49% 0.0124 91.5)",
+          "oklch(60% 0.0124 91.5)",
+          "oklch(72% 0.0124 91.5)",
+          "oklch(83% 0.0124 91.5)",
+          "oklch(95% 0.0124 91.5)"
+        ]
+      },
+      "counter-paper": {
+        "role": "neutral",
+        "displayName": "Counter Paper",
+        "tonalRamp": [
+          "oklch(15% 0.0069 88.6)",
+          "oklch(26% 0.0069 88.6)",
+          "oklch(38% 0.0069 88.6)",
+          "oklch(49% 0.0069 88.6)",
+          "oklch(60% 0.0069 88.6)",
+          "oklch(72% 0.0069 88.6)",
+          "oklch(83% 0.0069 88.6)",
+          "oklch(95% 0.0069 88.6)"
+        ]
+      },
+      "inset-stock": {
+        "role": "neutral",
+        "displayName": "Inset Stock",
+        "tonalRamp": [
+          "oklch(15% 0.0133 102.0)",
+          "oklch(26% 0.0133 102.0)",
+          "oklch(38% 0.0133 102.0)",
+          "oklch(49% 0.0133 102.0)",
+          "oklch(60% 0.0133 102.0)",
+          "oklch(72% 0.0133 102.0)",
+          "oklch(83% 0.0133 102.0)",
+          "oklch(95% 0.0133 102.0)"
+        ]
+      },
+      "paper-rule": {
+        "role": "neutral",
+        "displayName": "Paper Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0176 103.2)",
+          "oklch(26% 0.0176 103.2)",
+          "oklch(38% 0.0176 103.2)",
+          "oklch(49% 0.0176 103.2)",
+          "oklch(60% 0.0176 103.2)",
+          "oklch(72% 0.0176 103.2)",
+          "oklch(83% 0.0176 103.2)",
+          "oklch(95% 0.0176 103.2)"
+        ]
+      },
+      "field-rule": {
+        "role": "neutral",
+        "displayName": "Field Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0175 130.5)",
+          "oklch(26% 0.0175 130.5)",
+          "oklch(38% 0.0175 130.5)",
+          "oklch(49% 0.0175 130.5)",
+          "oklch(60% 0.0175 130.5)",
+          "oklch(72% 0.0175 130.5)",
+          "oklch(83% 0.0175 130.5)",
+          "oklch(95% 0.0175 130.5)"
+        ]
+      },
+      "receipt-note": {
+        "role": "neutral",
+        "displayName": "Receipt Note",
+        "tonalRamp": [
+          "oklch(15% 0.0164 118.1)",
+          "oklch(26% 0.0164 118.1)",
+          "oklch(38% 0.0164 118.1)",
+          "oklch(49% 0.0164 118.1)",
+          "oklch(60% 0.0164 118.1)",
+          "oklch(72% 0.0164 118.1)",
+          "oklch(83% 0.0164 118.1)",
+          "oklch(95% 0.0164 118.1)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Search Display",
+        "purpose": "The search opening"
+      },
+      "headline": {
+        "displayName": "Page Headline",
+        "purpose": "The review and confirmation titles"
+      },
+      "title": {
+        "displayName": "Panel Title",
+        "purpose": "Panel headings"
+      },
+      "item-title": {
+        "displayName": "Item Title",
+        "purpose": "Fleet row labels"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Supporting copy"
+      },
+      "label": {
+        "displayName": "Field Label",
+        "purpose": "Persistent field labels"
+      },
+      "receipt-total": {
+        "displayName": "Receipt Total",
+        "purpose": "The amount due on review"
+      },
+      "reference": {
+        "displayName": "Booking Reference",
+        "purpose": "The booking code on confirmation"
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.22, 1, .36, 1)",
+        "purpose": "Easing for control background and border transitions."
+      },
+      {
+        "name": "control-duration",
+        "value": "160ms",
+        "purpose": "Duration for control color transitions."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "none",
+        "purpose": "Transition value when reduced motion is requested."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-hero",
+        "value": "62rem"
+      },
+      {
+        "name": "stacked-review",
+        "value": "48rem"
+      },
+      {
+        "name": "stacked-contact",
+        "value": "30rem"
+      },
+      {
+        "name": "narrow-search",
+        "value": "23rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Peach fill identifies the main search or booking action.",
+      "html": "<button class=\"ds-primary\" type=\"button\">Search vehicles <svg class=\"ds-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.65\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12h15m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-primary { display: inline-flex; align-items: center; justify-content: center; gap: .75rem; min-height: 3.25rem; padding: .625rem 1.125rem; border: 1px solid transparent; border-radius: var(--control-radius, .5rem); background: var(--peach, #f4c5ae); color: var(--ink, #192724); font: 800 1rem/1.55 var(--font, Manrope, system-ui, sans-serif); text-align: center; cursor: pointer; }\n.ds-primary:hover { background: var(--peach-hover, #efb69a); }\n.ds-primary:active { background: var(--peach-active, #e9a889); }\n.ds-primary:disabled { background: var(--subtle, #edece2); color: var(--muted, #505b54); cursor: wait; }\n.ds-primary .ds-icon { width: 1.25rem; height: 1.25rem; flex: none; }\n.ds-primary:focus-visible { outline: 2px solid var(--focus, #8c3f26); outline-offset: 4px; }\n.ds-primary { transition: background-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)), border-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)); }\n@media (prefers-reduced-motion: reduce) { .ds-primary { transition: none; } }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A paper control with a stronger border carries retry actions.",
+      "html": "<button class=\"ds-secondary\" type=\"button\">Try again</button>",
+      "css": ".ds-secondary { display: inline-flex; align-items: center; justify-content: center; gap: .75rem; min-height: 3.25rem; padding: .625rem 1.125rem; border: 1px solid var(--field-line, #8c9287); border-radius: var(--control-radius, .5rem); background: var(--paper, #fffdf8); color: var(--ink, #192724); font: 800 1rem/1.55 var(--font, Manrope, system-ui, sans-serif); text-align: center; cursor: pointer; }\n.ds-secondary:hover { background: var(--peach-hover, #efb69a); }\n.ds-secondary:active { background: var(--peach-active, #e9a889); }\n.ds-secondary:disabled { background: var(--subtle, #edece2); color: var(--muted, #505b54); cursor: wait; }\n.ds-secondary .ds-icon { width: 1.25rem; height: 1.25rem; flex: none; }\n.ds-secondary:focus-visible { outline: 2px solid var(--focus, #8c3f26); outline-offset: 4px; }\n.ds-secondary { transition: background-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)), border-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)); }\n@media (prefers-reduced-motion: reduce) { .ds-secondary { transition: none; } }"
+    },
+    {
+      "name": "Fleet Row Action",
+      "kind": "button",
+      "refersTo": "link-row-action",
+      "description": "An outlined link opens the review for the selected vehicle.",
+      "html": "<a class=\"ds-row-action\" href=\"#ds-rental-review\" id=\"ds-rental-review\">Review rental <svg class=\"ds-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.65\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 12h15m-6-6 6 6-6 6\"/></svg></a>",
+      "css": ".ds-row-action { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 2.75rem; box-sizing: border-box; padding: .4375rem .75rem; border: 1px solid var(--line, #d6d5c8); border-radius: var(--control-radius, .5rem); color: var(--ink, #192724); font: 800 .875rem/1.55 var(--font, Manrope, system-ui, sans-serif); text-decoration: none; }\n.ds-row-action .ds-icon { width: 1rem; height: 1rem; flex: none; }\n.ds-row-action:hover { border-color: var(--field-line, #8c9287); background: var(--subtle, #edece2); }\n.ds-row-action:active { background: var(--peach, #f4c5ae); }\n.ds-row-action:focus-visible { outline: 2px solid var(--focus, #8c3f26); outline-offset: 4px; }\n.ds-row-action { transition: background-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)), border-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)); }\n@media (prefers-reduced-motion: reduce) { .ds-row-action { transition: none; } }"
+    },
+    {
+      "name": "Back Link",
+      "kind": "nav",
+      "refersTo": "link-back",
+      "description": "A plain text link returns guests to their vehicle search.",
+      "html": "<a class=\"ds-back\" href=\"#ds-vehicle-search\" id=\"ds-vehicle-search\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.65\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 12H5m6 6-6-6 6-6\"/></svg> Back to vehicle search</a>",
+      "css": ".ds-back { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; color: var(--ink, #192724); font: 800 .875rem/1.55 var(--font, Manrope, system-ui, sans-serif); text-decoration: none; text-underline-offset: .25em; }\n.ds-back .ds-icon { width: 1rem; height: 1rem; flex: none; }\n.ds-back:hover { text-decoration: underline; }\n.ds-back:focus-visible { outline: 2px solid var(--focus, #8c3f26); outline-offset: 4px; }\n.ds-back { transition: background-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)), border-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)); }\n@media (prefers-reduced-motion: reduce) { .ds-back { transition: none; } }"
+    },
+    {
+      "name": "Labeled Field",
+      "kind": "input",
+      "refersTo": "field-input",
+      "description": "A persistent label and strong outline identify date and contact inputs.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-contact-email\">Email</label><input id=\"ds-contact-email\" type=\"email\" name=\"email\" autocomplete=\"email\"></div>",
+      "css": ".ds-field { display: grid; gap: .4375rem; min-width: 0; color: var(--ink, #192724); font: 400 1rem/1.55 var(--font, Manrope, system-ui, sans-serif); }\n.ds-field label { font-size: .875rem; font-weight: 800; line-height: 1.25rem; }\n.ds-field input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 3.25rem; padding: .625rem .75rem; border: 1px solid var(--field-line, #8c9287); border-radius: var(--control-radius, .5rem); background: var(--paper, #fffdf8); color: var(--ink, #192724); caret-color: var(--focus, #8c3f26); font: inherit; }\n.ds-field input:hover { border-color: var(--ink, #192724); } .ds-field input[aria-invalid=\"true\"] { border-color: var(--error, #a03427); }\n.ds-field input:focus-visible { outline: 2px solid var(--focus, #8c3f26); outline-offset: 4px; }\n.ds-field input { transition: background-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)), border-color 160ms var(--ease-out, cubic-bezier(.22, 1, .36, 1)); }\n@media (prefers-reduced-motion: reduce) { .ds-field input { transition: none; } }"
+    },
+    {
+      "name": "Trip Details Panel",
+      "kind": "card",
+      "refersTo": "panel-trip",
+      "description": "A flat paper panel groups the vehicle label, dates, and pickup location.",
+      "html": "<section class=\"ds-trip\" aria-label=\"Example trip details\"><div class=\"ds-trip-heading\"><span class=\"ds-trip-icon\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.65\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 10 1.5-4h11L19 10M3 16v2m18-2v2M5 13h2m10 0h2\"/><rect x=\"3\" y=\"10\" width=\"18\" height=\"6\" rx=\"2\"/></svg></span><div><h2>Silver Hatchback</h2><p>Toyota Yaris</p></div></div><dl class=\"ds-itinerary\"><div><dt>Pickup date</dt><dd><time datetime=\"2026-12-12\">December 12, 2026</time></dd></div><div><dt>Return date</dt><dd><time datetime=\"2026-12-13\">December 13, 2026</time></dd></div><div class=\"ds-itinerary-location\"><dt><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.65\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z\"/><circle cx=\"12\" cy=\"10\" r=\"2\"/></svg> Pickup location</dt><dd>Example rental counter</dd></div></dl></section>",
+      "css": ".ds-trip { padding: var(--panel-padding, 1.75rem); border: 1px solid var(--line, #d6d5c8); border-radius: var(--radius, .875rem); background: var(--paper, #fffdf8); color: var(--ink, #192724); font: 400 1rem/1.55 var(--font, Manrope, system-ui, sans-serif); }\n.ds-trip-heading { display: flex; align-items: center; gap: .875rem; }\n.ds-trip-heading h2 { margin: 0; font-size: 1.625rem; font-weight: 800; letter-spacing: -.035em; line-height: 1.12; overflow-wrap: anywhere; }\n.ds-trip-heading p { margin: .1875rem 0 0; color: var(--muted, #505b54); font-size: .875rem; }\n.ds-trip-icon { display: grid; place-items: center; width: 3rem; height: 3rem; flex: none; border-radius: var(--control-radius, .5rem); background: var(--subtle, #edece2); }\n.ds-trip-icon .ds-icon { width: 1.5rem; height: 1.5rem; }\n.ds-itinerary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1.25rem 0 0; padding-top: 1.25rem; border-top: 1px solid var(--line, #d6d5c8); }\n.ds-itinerary dt { color: var(--muted, #505b54); font-size: .875rem; font-weight: 700; } .ds-itinerary dd { margin: .1875rem 0 0; font-weight: 800; overflow-wrap: anywhere; }\n.ds-itinerary-location { grid-column: 1 / -1; } .ds-itinerary-location dt { display: flex; align-items: center; gap: .25rem; } .ds-itinerary-location .ds-icon { width: 1rem; height: 1rem; }\n@media (max-width: 48rem) { .ds-trip-heading h2 { font-size: 1.375rem; } }"
+    },
+    {
+      "name": "Booking Progress",
+      "kind": "nav",
+      "refersTo": "progress-current",
+      "description": "Numbered circles show the sequence and fill the current step.",
+      "html": "<ol class=\"ds-steps\" role=\"list\" aria-label=\"Booking progress\"><li><span aria-hidden=\"true\">1</span> Find a vehicle</li><li aria-current=\"step\"><span aria-hidden=\"true\">2</span> Review &amp; book</li><li><span aria-hidden=\"true\">3</span> Confirmation</li></ol>",
+      "css": ".ds-steps { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem 1.125rem; margin: 0; padding: 0; list-style: none; color: var(--muted, #505b54); font: 700 .8125rem/1.55 var(--font, Manrope, system-ui, sans-serif); }\n.ds-steps li { display: flex; align-items: center; gap: .5rem; } .ds-steps li + li::before { content: \"\"; width: 1.25rem; margin-inline-end: .5625rem; border-top: 1px solid var(--field-line, #8c9287); }\n.ds-steps span { display: grid; place-items: center; width: 1.375rem; height: 1.375rem; box-sizing: border-box; border: 1px solid var(--field-line, #8c9287); border-radius: 50%; font-size: .6875rem; font-variant-numeric: tabular-nums; }\n.ds-steps [aria-current] { color: var(--ink, #192724); } .ds-steps [aria-current] span { border-color: var(--ink, #192724); background: var(--ink, #192724); color: var(--paper, #fffdf8); }\n@media (max-width: 30rem) { .ds-steps { gap: .5rem .625rem; font-size: .6875rem; } .ds-steps li { gap: .3125rem; } .ds-steps li + li::before { width: .375rem; margin-inline-end: .125rem; } .ds-steps span { width: 1.125rem; height: 1.125rem; } }"
+    },
+    {
+      "name": "Quote Receipt",
+      "kind": "custom",
+      "refersTo": "receipt-quote",
+      "description": "The total leads above a perforation and aligned itemized amounts.",
+      "html": "<section class=\"ds-receipt\" aria-label=\"Example quote receipt\"><div class=\"ds-receipt-header\"><h2>Amount due at pickup</h2><p class=\"ds-total\">$120.00</p></div><dl class=\"ds-receipt-detail\"><div><dt>Rental for 2 days <span class=\"ds-billing-note\">Includes pickup and return dates.</span></dt><dd>$100.00</dd></div><div><dt>Fee</dt><dd>$20.00</dd></div></dl></section>",
+      "css": ".ds-receipt { border-radius: var(--radius, .875rem); background: var(--ink, #192724); color: var(--paper, #fffdf8); font: 400 1rem/1.55 var(--font, Manrope, system-ui, sans-serif); }\n.ds-receipt-header { display: grid; align-content: center; min-height: 7.5625rem; gap: .4375rem; box-sizing: border-box; padding: 1.125rem var(--panel-padding, 1.75rem); }\n.ds-receipt-header h2 { margin: 0; color: var(--peach, #f4c5ae); font-size: .875rem; font-weight: 800; line-height: 1.12; }\n.ds-receipt-detail { position: relative; margin: 0; padding: .5rem var(--panel-padding, 1.75rem); border-top: 1px dashed var(--field-line, #8c9287); }\n.ds-receipt-detail::before, .ds-receipt-detail::after { position: absolute; inset-block-start: -.4375rem; width: .875rem; height: .875rem; border-radius: 50%; background: var(--ground, #f5f2e9); content: \"\"; pointer-events: none; }\n.ds-receipt-detail::before { inset-inline-start: -.4375rem; } .ds-receipt-detail::after { inset-inline-end: -.4375rem; }\n.ds-receipt-detail > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); align-items: baseline; gap: .75rem; padding-block: .75rem; }\n.ds-receipt-detail > div + div { border-top: 1px solid var(--muted, #505b54); }\n.ds-receipt-detail dt { font-size: .875rem; font-weight: 700; }\n.ds-receipt-detail dd { max-width: 15ch; margin: 0; font-size: .875rem; font-weight: 800; font-variant-numeric: tabular-nums; text-align: end; overflow-wrap: anywhere; }\n.ds-total { margin: 0; font-size: 2.375rem; font-weight: 800; line-height: 1.12; letter-spacing: -.035em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }\n.ds-billing-note { display: block; margin-top: .1875rem; color: #dcdfd3; font-size: .8125rem; font-weight: 400; }\n@media (max-width: 48rem) { .ds-total { font-size: 2.125rem; } }"
+    },
+    {
+      "name": "Confirmation Receipt",
+      "kind": "custom",
+      "refersTo": "receipt-confirmation",
+      "description": "A selectable booking reference leads with the amount due underneath.",
+      "html": "<section class=\"ds-receipt\" aria-label=\"Example confirmation receipt\"><div class=\"ds-receipt-header\"><h2>Booking reference</h2><p class=\"ds-reference\">DEMO-A24B6</p></div><dl class=\"ds-receipt-detail\"><div><dt>Amount due at pickup</dt><dd>$120.00</dd></div></dl></section>",
+      "css": ".ds-receipt { border-radius: var(--radius, .875rem); background: var(--ink, #192724); color: var(--paper, #fffdf8); font: 400 1rem/1.55 var(--font, Manrope, system-ui, sans-serif); }\n.ds-receipt-header { display: grid; align-content: center; min-height: 7.5625rem; gap: .4375rem; box-sizing: border-box; padding: 1.125rem var(--panel-padding, 1.75rem); }\n.ds-receipt-header h2 { margin: 0; color: var(--peach, #f4c5ae); font-size: .875rem; font-weight: 800; line-height: 1.12; }\n.ds-receipt-detail { position: relative; margin: 0; padding: .5rem var(--panel-padding, 1.75rem); border-top: 1px dashed var(--field-line, #8c9287); }\n.ds-receipt-detail::before, .ds-receipt-detail::after { position: absolute; inset-block-start: -.4375rem; width: .875rem; height: .875rem; border-radius: 50%; background: var(--ground, #f5f2e9); content: \"\"; pointer-events: none; }\n.ds-receipt-detail::before { inset-inline-start: -.4375rem; } .ds-receipt-detail::after { inset-inline-end: -.4375rem; }\n.ds-receipt-detail > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); align-items: baseline; gap: .75rem; padding-block: .75rem; }\n.ds-receipt-detail > div + div { border-top: 1px solid var(--muted, #505b54); }\n.ds-receipt-detail dt { font-size: .875rem; font-weight: 700; }\n.ds-receipt-detail dd { max-width: 15ch; margin: 0; font-size: .875rem; font-weight: 800; font-variant-numeric: tabular-nums; text-align: end; overflow-wrap: anywhere; }\n.ds-receipt-header { min-height: auto; gap: .625rem; padding-block: 1.25rem; }\n.ds-reference { width: fit-content; margin: 0; font: 700 1.375rem/1.35 ui-monospace, Consolas, monospace; overflow-wrap: anywhere; user-select: all; }\n@media (max-width: 48rem) { .ds-reference { font-size: 1.0625rem; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Rental Counter",
+    "overview": "Warm stock and dark pine ink take their cues from a rental desk. Manrope and a few crisp rules make dates, vehicle labels, and actions easy to scan. The dark date form anchors the search opening and shares its palette with the booking receipts.\n\nA dark receipt gives pricing and confirmation a recognizable place in the journey. The total is the largest line in the quote. The booking reference takes that position on confirmation, above the perforated rule and the amount due.",
+    "keyCharacteristics": [
+      "Warm ground with flat paper panels",
+      "Pine-black lettering and peach primary actions",
+      "Compact, ruled fleet rows with outlined actions",
+      "Inverted receipts with a perforated divider"
+    ],
+    "rules": [
+      {
+        "name": "The Peach Action Rule",
+        "body": "Use the peach fill for the primary action. Give row actions and secondary controls a paper or transparent resting state.",
+        "section": "colors"
+      },
+      {
+        "name": "The Receipt Hierarchy Rule",
+        "body": "Put the quote total or confirmation reference above the perforation and keep itemized amounts aligned at the trailing edge.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Paper Rule",
+        "body": "Define panels with tone, space, and a fine rule. Use the cutout and dashed line together for the receipt seam.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep field labels and actionable error messages visible.",
+      "Do keep vehicle labels and receipt values readable when they wrap.",
+      "Do use the quiet paper row treatment for vehicle selection and keep the peach fill for the main action."
+    ],
+    "donts": [
+      "Don't add drop shadows to paper panels or the receipt.",
+      "Don't use monospace for body copy."
+    ]
+  }
+}
