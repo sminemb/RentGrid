@@ -5,7 +5,10 @@ namespace Tests\Feature;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
+use Monolog\Handler\TestHandler;
 use Tests\TestCase;
 
 class CustomerBookingTest extends TestCase
@@ -95,6 +98,39 @@ class CustomerBookingTest extends TestCase
             'currency' => 'PHP',
             'status' => 'confirmed',
         ]);
+    }
+
+    public function test_booking_insert_failure_logs_only_the_database_error_code(): void
+    {
+        config([
+            'app.debug' => true,
+            'logging.default' => 'booking_test',
+            'logging.channels.booking_test' => ['driver' => 'monolog', 'handler' => TestHandler::class],
+        ]);
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $quote = $this->quote($vehicle)->assertOk();
+        DB::statement('ALTER TABLE reservations ADD CONSTRAINT reject_test_booking CHECK (FALSE)');
+
+        $response = $this->book($quote)->assertInternalServerError();
+
+        $records = Log::channel('booking_test')->getHandlers()[0]->getRecords();
+        $this->assertCount(1, $records);
+        $this->assertSame('Booking confirmation failed.', $records[0]->message);
+        $this->assertSame(['sqlstate' => '23514'], $records[0]->context);
+        $response->assertExactJson(['message' => 'Unable to confirm this booking.']);
+        $this->assertDatabaseCount('reservations', 0);
+    }
+
+    public function test_booking_accepts_a_quote_with_a_max_length_unicode_pickup_location(): void
+    {
+        $location = str_repeat("\u{20000}", 255);
+        config(['rentgrid.booking.pickup_location' => $location]);
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+
+        $quote = $this->quote($vehicle)->assertOk()->assertJsonPath('pickup_location', $location);
+
+        $this->book($quote)->assertCreated()->assertJsonPath('pickup_location', $location);
+        $this->assertDatabaseHas('reservations', ['vehicle_id' => $vehicle->id, 'pickup_location' => $location]);
     }
 
     public function test_a_quote_cannot_be_used_from_a_different_session(): void

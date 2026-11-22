@@ -36,7 +36,7 @@ final class BookingQuoteService
                 ...$selection,
                 'terms' => $terms,
                 'session' => hash('sha256', $sessionId),
-            ], JSON_THROW_ON_ERROR)),
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)),
         ];
     }
 

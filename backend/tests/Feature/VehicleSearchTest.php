@@ -54,6 +54,18 @@ class VehicleSearchTest extends TestCase
             ->assertExactJson(['data' => []]);
     }
 
+    public function test_anonymous_search_does_not_start_a_session(): void
+    {
+        config(['session.driver' => 'database']);
+
+        $this->getJson('/api/vehicles/availability?pickup_date=2026-06-10&return_date=2026-06-10')
+            ->assertOk()
+            ->assertCookieMissing(config('session.cookie'))
+            ->assertCookieMissing('XSRF-TOKEN');
+
+        $this->assertDatabaseCount('sessions', 0);
+    }
+
     public function test_search_returns_date_field_errors(): void
     {
         $this->getJson('/api/vehicles/availability')
