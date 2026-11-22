@@ -601,6 +601,21 @@ input[aria-invalid="true"] { border-color: var(--error); }
 
 .staff-form .button { justify-self: start; }
 
+.staff-actions { display: flex; flex-wrap: wrap; gap: .625rem; }
+
+.reservation-reference {
+  padding-inline: .5rem;
+  font-family: ui-monospace, Consolas, monospace;
+  letter-spacing: -.02em;
+}
+
+.reservation-details { margin-top: 1.25rem; }
+.reservation-itinerary { margin-top: 0; }
+.reservation-guest { grid-column: 1 / -1; }
+.reservation-cancellation { display: grid; justify-items: start; gap: .75rem; }
+.reservation-cancellation .staff-actions { margin-top: .75rem; }
+.button.reservation-cancel { color: var(--error); }
+
 .fleet-shell { max-width: 65rem; }
 
 .fleet-heading {

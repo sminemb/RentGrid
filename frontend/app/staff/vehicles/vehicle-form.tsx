@@ -4,7 +4,7 @@ import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { StaffVehicle } from "./fleet-types";
 import { PublicationStatus } from "./fleet-ui";
-import { StaffFeedback, StaffField, useStaffMutation } from "./staff-form";
+import { StaffFeedback, StaffField, useStaffMutation } from "../staff-form";
 
 function vehicleDetails({ display_label, make, model }: StaffVehicle) {
   return { display_label, make, model };

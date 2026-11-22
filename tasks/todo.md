@@ -97,16 +97,25 @@ Follow the [implementation plan](plan.md) and [product specification](../SPEC.md
 
 ### Task 12 — Look up and cancel reservations
 
-- [ ] Build Next.js reservation lookup and cancellation screens for authorized staff. Laravel policies protect lookup and cancellation. The booking service updates status under the vehicle lock. Staff can still find the cancelled record, and eligible dates become available again.
+- [x] Build Next.js reservation lookup and cancellation screens for authorized staff. Laravel policies protect lookup and cancellation. The booking service updates status under the vehicle lock. Staff can still find the cancelled record, and eligible dates become available again.
 - **Verify** with staff lookup, unauthorized and repeated-cancellation cases, and a new customer search and booking for the released dates.
 - **Depends on** 08, 09, and the cancellation rules. **Scope** M. **Likely paths** `backend/app/Http/`, `backend/app/Policies/`, `backend/app/Services/BookingService.php`, `backend/tests/Feature/StaffReservationsTest.php`, `frontend/app/staff/reservations/`.
 
 ### Task 13 — Verify the complete V1 flow
 
-- [ ] Run every acceptance scenario in the spec with a clean database and synthetic data. In a browser, use Next.js to search, review, confirm a booking, sign in as staff, look up and cancel the booking, and book the released vehicle. Verify cookie and authorization behavior across both apps.
+- [x] Run every acceptance scenario in the spec with a clean database and synthetic data. In a browser, use Next.js to search, review, confirm a booking, sign in as staff, look up and cancel the booking, and book the released vehicle. Verify cookie and authorization behavior across both apps.
 - **Verify** with a clean migration, `php artisan test`, `npm run lint`, `npm run build`, and the browser walkthrough. Record any remaining acceptance failures by requirement ID.
 - **Depends on** 08, 10, 11, and 12. **Scope** S. **Likely paths** `backend/tests/`, `frontend/app/`, `README.md`.
 
 **Final checkpoint after Task 13**
 
-- [ ] All R1–R5 requirements and spec acceptance scenarios pass. Customer confirmation and staff operations work from their intended entry points.
+- [x] All R1–R5 requirements and spec acceptance scenarios pass. Customer confirmation and staff operations work from their intended entry points.
+
+Verification passed on a clean PostgreSQL test database with synthetic data. Laravel reported 50 passing tests. Frontend lint and the production build passed. Playwright ran the customer and staff walkthrough through Next.js in Chromium.
+
+| Requirement | Verified scenarios |
+| --- | --- |
+| R1 | Multi-day searches exclude overlapping reservations and blocks, distinguish similar vehicles, include the return day, and reject past or reversed dates. |
+| R2 | Review shows the selected vehicle, dates, pickup location, and amount due. Search retains dates when customers need to try again. |
+| R3–R4 | A saved booking shows the reviewed details and a reference. A stale quote preserves dates, overlapping submissions commit once, and recovery after a lost response returns the original reference and current status. |
+| R5 | Staff can manage fleet listings and blocks. A booking and an overlapping block cannot both commit. Authorized staff can look up and cancel a reservation, find it afterwards, and see its dates become available for a new booking. Guest confirmation stays session-bound, staff mutations require CSRF protection, and sign-out invalidates the staff session. |

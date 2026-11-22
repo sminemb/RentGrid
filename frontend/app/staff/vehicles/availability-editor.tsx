@@ -2,7 +2,7 @@
 
 import { type FormEvent } from "react";
 import type { CalendarRange, StaffCalendar } from "./fleet-types";
-import { StaffFeedback, StaffField, useStaffMutation } from "./staff-form";
+import { StaffFeedback, StaffField, useStaffMutation } from "../staff-form";
 
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" });
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ReservationStatus;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -190,6 +191,41 @@ class BookingConcurrencyTest extends TestCase
             $this->assertDatabaseCount('reservations', 0);
         } finally {
             $withdrawal->stop(0);
+            $booking->stop(0);
+        }
+    }
+
+    public function test_cancellation_commits_before_a_waiting_booking_can_use_the_released_dates(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $booking = $this->prepareBooking($vehicle, 'rentgrid-replacement');
+        $pickup = today(config('rentgrid.business_timezone'))->addWeek();
+        $reservation = $vehicle->reservations()->create([
+            'reference' => 'RG-EXISTING',
+            'status' => ReservationStatus::Confirmed,
+            'pickup_date' => $pickup->toDateString(),
+            'return_date' => $pickup->addDay()->toDateString(),
+        ]);
+        $cancel = $this->prepareStaffRequest('rentgrid-cancel', '/api/staff/reservations/RG-EXISTING/cancel', 'POST', []);
+
+        try {
+            DB::beginTransaction();
+            try {
+                Vehicle::query()->lockForUpdate()->findOrFail($vehicle->id);
+                $cancel->start();
+                $this->waitForDatabaseLocks(['rentgrid-cancel' => $cancel]);
+                $booking->start();
+                $this->waitForDatabaseLocks(['rentgrid-cancel' => $cancel, 'rentgrid-replacement' => $booking]);
+            } finally {
+                DB::rollBack();
+            }
+
+            $this->assertSame(200, $this->workerResponse($cancel)['status']);
+            $this->assertSame(201, $this->workerResponse($booking)['status']);
+            $this->assertSame(ReservationStatus::Cancelled, $reservation->refresh()->status);
+            $this->assertDatabaseCount('reservations', 2);
+        } finally {
+            $cancel->stop(0);
             $booking->stop(0);
         }
     }

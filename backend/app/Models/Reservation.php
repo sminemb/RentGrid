@@ -37,6 +37,14 @@ class Reservation extends Model
         return ['id' => $this->vehicle_id, ...($this->vehicle_details ?? $this->vehicle->details())];
     }
 
+    public function cancel(): void
+    {
+        if ($this->status === ReservationStatus::Confirmed) {
+            $this->status = ReservationStatus::Cancelled;
+            $this->save();
+        }
+    }
+
     protected function casts(): array
     {
         return [

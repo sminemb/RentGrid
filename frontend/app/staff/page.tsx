@@ -18,7 +18,10 @@ export default async function StaffPage() {
         {staff ? (
           <>
             <p>Signed in as <strong>{staff.name}</strong></p>
-            <Link href="/staff/vehicles" className="button">Manage fleet</Link>
+            <div className="staff-actions">
+              <Link href="/staff/vehicles" className="button">Manage fleet</Link>
+              <Link href="/staff/reservations" className="button button-secondary">Find a reservation</Link>
+            </div>
             <StaffSignOut />
           </>
         ) : forbidden ? (

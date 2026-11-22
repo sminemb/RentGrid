@@ -84,6 +84,10 @@ Choose **Manage fleet** to add or edit an individual vehicle. New vehicles start
 
 Vehicle edits include the originally loaded `display_label`, `make`, and `model` under `original_details`. If another staff member saved different details, the edit returns HTTP 409 with `vehicle_details_conflict`. Reload the vehicle details before applying the edit again.
 
+Choose **Find a reservation** and enter the reference shown on the guest’s confirmation. Check the vehicle, dates, and guest contact details before selecting **Cancel reservation**. Once you confirm the cancellation, staff can still look up the cancelled record, and customers can book those dates if the vehicle is otherwise available.
+
+`GET /api/staff/reservations/{reference}` and `POST /api/staff/reservations/{reference}/cancel` require staff access. Repeating a cancellation returns the same cancelled reservation. The original guest’s confirmation and booking retry also show the current status.
+
 Laravel handles `POST /api/staff/sign-in` and `POST /api/staff/sign-out` with its session guard and CSRF protection. Sign-in allows five attempts per minute for a given email and IP and thirty per IP. The staff page and `GET /api/staff/session` require an authenticated account that passes the `access-staff` gate.
 
 In production, put a trusted ingress in front of Next.js and restrict Next.js to that ingress. Keep Laravel private to its upstream proxy. Have the ingress replace `X-Forwarded-For` with the verified client IP. For example, an Nginx ingress that directly receives client connections can use `proxy_set_header X-Forwarded-For $remote_addr;`. The Next.js rewrite forwards that header to Laravel.

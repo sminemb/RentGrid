@@ -3,8 +3,10 @@
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingQuoteController;
 use App\Http\Controllers\StaffAvailabilityController;
+use App\Http\Controllers\StaffReservationController;
 use App\Http\Controllers\StaffSessionController;
 use App\Http\Controllers\StaffVehicleController;
+use App\Models\Reservation;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +20,8 @@ Route::prefix('api/staff')->group(function () {
     Route::middleware('auth')->group(function () {
         Route::get('/session', [StaffSessionController::class, 'show'])->can('access-staff');
         Route::post('/sign-out', [StaffSessionController::class, 'destroy']);
+        Route::get('/reservations/{reference}', [StaffReservationController::class, 'show'])->can('lookup', Reservation::class);
+        Route::post('/reservations/{reference}/cancel', [StaffReservationController::class, 'cancel'])->can('cancel', Reservation::class);
         Route::get('/vehicles', [StaffVehicleController::class, 'index'])->can('viewAny', Vehicle::class);
         Route::post('/vehicles', [StaffVehicleController::class, 'store'])->can('create', Vehicle::class);
 

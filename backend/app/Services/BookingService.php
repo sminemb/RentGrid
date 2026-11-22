@@ -76,4 +76,15 @@ final class BookingService
             ->where('guest_session_key', BookingQuoteService::sessionKey($session))
             ->first();
     }
+
+    public function cancel(Reservation $reservation): Reservation
+    {
+        return DB::transaction(function () use ($reservation): Reservation {
+            $vehicle = Vehicle::query()->lockForUpdate()->findOrFail($reservation->vehicle_id);
+            $current = $vehicle->reservations()->findOrFail($reservation->id);
+            $current->cancel();
+
+            return $current;
+        });
+    }
 }

@@ -46,7 +46,7 @@ export function useStaffMutation() {
         setProblem(await response.json());
         if (response.status === 409) startTransition(() => router.refresh());
       } else if (response.status === 404) {
-        setProblem({ message: "This item is no longer available. The fleet information has been refreshed." });
+        setProblem({ message: "This item is no longer available. The page has been refreshed." });
         startTransition(() => router.refresh());
       } else {
         throw new Error();
