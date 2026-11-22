@@ -22,6 +22,7 @@ final class BookingQuoteService
         $period = $this->availability->period($pickupDate, $returnDate);
         $vehicle = $this->availability->vehiclesAvailableFor($period)->find($vehicleId)
             ?? throw BookingConflict::unavailable();
+        $vehicleDetails = $vehicle->details();
         $terms = $this->pricing->termsFor($period);
         $selection = [
             'vehicle_id' => $vehicleId,
@@ -30,12 +31,13 @@ final class BookingQuoteService
         ];
 
         return [
-            'vehicle' => $vehicle,
+            'vehicle' => ['id' => $vehicle->id, ...$vehicleDetails],
             'pickup_date' => $period->pickupDate,
             'return_date' => $period->returnDate,
             ...$terms,
             'quote_token' => $this->encrypter->encryptString(json_encode([
                 ...$selection,
+                'vehicle_details' => $vehicleDetails,
                 'terms' => $terms,
                 'session' => self::sessionKey($session),
                 'attempt' => (string) Str::uuid(),

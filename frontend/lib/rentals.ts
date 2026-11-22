@@ -11,6 +11,7 @@ export type Vehicle = {
 };
 
 export type ApiProblem = {
+  code?: string;
   message?: string;
   errors?: Record<string, string[]>;
 };

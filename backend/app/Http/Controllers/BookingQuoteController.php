@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\VehicleResource;
 use App\Services\BookingQuoteService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,7 +22,6 @@ class BookingQuoteController extends Controller
             $selection['return_date'],
             $request->session(),
         );
-        $quote['vehicle'] = new VehicleResource($quote['vehicle']);
 
         return response()->json($quote, headers: ['Cache-Control' => 'private, no-store']);
     }

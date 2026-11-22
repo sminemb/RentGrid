@@ -54,18 +54,38 @@ class StaffFleetTest extends TestCase
         $this->getJson($search)->assertExactJson(['data' => []]);
 
         $updated = [...$vehicle, 'display_label' => 'City 02'];
-        $this->putJson($url, $updated + ['is_published' => true])->assertOk()
+        $this->putJson($url, $updated + ['original_details' => $vehicle, 'is_published' => true])->assertOk()
             ->assertJsonPath('data.is_published', false)->assertJsonPath('data.id', $id);
-        $this->putJson($url, $updated)->assertOk();
+        $this->putJson($url, $updated + ['original_details' => $updated])->assertOk();
         $second = $this->postJson('/api/staff/vehicles', $vehicle)->assertCreated()->json('data.id');
         $this->assertNotSame($id, $second);
-        $this->putJson($url, $vehicle)->assertUnprocessable()->assertJsonValidationErrors('display_label');
+        $this->putJson($url, $vehicle + ['original_details' => $updated])->assertUnprocessable()->assertJsonValidationErrors('display_label');
         $this->putJson("$url/publication", [])->assertUnprocessable()->assertJsonValidationErrors('is_published');
         $this->putJson("$url/publication", ['is_published' => true])->assertOk();
         $this->getJson($search)->assertOk()->assertExactJson(['data' => [$updated + ['id' => $id]]]);
         $this->putJson("$url/publication", ['is_published' => false])->assertOk();
         $this->getJson($search)->assertExactJson(['data' => []]);
         $this->getJson($url)->assertOk()->assertJsonPath('data.is_published', false);
+    }
+
+    public function test_stale_vehicle_details_cannot_overwrite_another_staff_edit(): void
+    {
+        $original = ['display_label' => 'City 01', 'make' => 'Honda', 'model' => 'City'];
+        $vehicle = Vehicle::factory()->create($original);
+        $url = "/api/staff/vehicles/{$vehicle->id}";
+
+        $this->signInStaff();
+        $current = [...$original, 'display_label' => 'City 02'];
+        $this->putJson($url, $current + ['original_details' => array_reverse($original)])->assertOk();
+
+        $this->signInStaff();
+        $this->putJson($url, [...$original, 'model' => 'City Hatchback', 'original_details' => $original])
+            ->assertConflict()->assertJsonPath('code', 'vehicle_details_conflict');
+        $this->assertDatabaseHas('vehicles', $current + ['id' => $vehicle->id]);
+        $this->putJson($url, $current)->assertUnprocessable()->assertJsonValidationErrors('original_details');
+
+        $this->putJson($url, [...$current, 'model' => 'City Hatchback', 'original_details' => $current])
+            ->assertOk()->assertJsonPath('data.model', 'City Hatchback')->assertJsonPath('data.display_label', 'City 02');
     }
 
     public function test_staff_can_block_and_release_dates_for_the_selected_vehicle(): void

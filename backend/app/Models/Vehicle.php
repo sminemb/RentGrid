@@ -16,6 +16,16 @@ class Vehicle extends Model
 
     protected $attributes = ['is_published' => false];
 
+    /** @return array{display_label: string, make: string, model: string} */
+    public function details(): array
+    {
+        return [
+            'display_label' => $this->display_label,
+            'make' => $this->make,
+            'model' => $this->model,
+        ];
+    }
+
     protected function casts(): array
     {
         return ['is_published' => 'boolean'];

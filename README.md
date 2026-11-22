@@ -62,13 +62,13 @@ RENTAL_DEPOSIT_MINOR=50000
 
 Set an ISO 4217 currency code and enter amounts in its smallest unit, such as centavos for PHP. The quote charges the daily rate for each day from pickup through return, plus any one-time fee and deposit. The example charges PHP 1,500 per day, a PHP 100 fee, and a PHP 500 deposit. Omit the fee and deposit settings when they are zero. Quotes require a configured pickup location, currency, and daily rate.
 
-`GET /api/vehicles/availability` accepts `pickup_date` and `return_date` in `YYYY-MM-DD` format. After bootstrapping the session with `GET /api/session`, `POST /api/booking-quotes` accepts those dates and `vehicle_id`. `POST /api/bookings` accepts the returned `quote_token` and the guest's `name`, `email`, and `phone`. Both POST requests use the same session and CSRF cookie. The quote fixes the selection for that booking attempt. A new booking returns HTTP 201. Sending the same quote token again from the same session returns HTTP 200 with the existing reference and current status. Conflicts return `vehicle_unavailable` or `price_changed`.
+`GET /api/vehicles/availability` accepts `pickup_date` and `return_date` in `YYYY-MM-DD` format. After bootstrapping the session with `GET /api/session`, `POST /api/booking-quotes` accepts those dates and `vehicle_id`. `POST /api/bookings` accepts the returned `quote_token` and the guest's `name`, `email`, and `phone`. Both POST requests use the same session and CSRF cookie. The quote records the selected vehicle, its displayed details, and the rental terms. A new booking returns HTTP 201. Sending the same quote token again from the same session returns HTTP 200 with the existing reference and current status. Conflicts return `vehicle_unavailable`, `vehicle_changed`, or `price_changed`. Changes to the vehicle details or rental terms require the guest to review an updated quote.
 
-The browser opens `/book/confirmation/{reference}` after submission. It reads the saved booking from `GET /api/bookings/{reference}`, which requires the original guest session and returns a private, non-cacheable response. Configure `RENTAL_PICKUP_INSTRUCTIONS` and `RENTAL_CANCELLATION_TERMS` to include approved business wording. RentGrid saves that wording at booking time. With no configured cancellation terms, the confirmation directs guests to contact the business to request changes or cancellations.
+The browser opens `/book/confirmation/{reference}` after submission. It reads the saved booking from `GET /api/bookings/{reference}`, which requires the original guest session and returns a private, non-cacheable response. The confirmation shows the saved vehicle label, make, and model. For existing guest bookings, the migration saves the vehicle details available at migration time. Configure `RENTAL_PICKUP_INSTRUCTIONS` and `RENTAL_CANCELLATION_TERMS` to include approved business wording. RentGrid saves that wording at booking time. With no configured cancellation terms, the confirmation directs guests to contact the business to request changes or cancellations.
 
 If the confirmation response is interrupted, the guest can choose **Recover confirmation** on the same checkout, including after a reload in the same tab. Recovery uses the original quote and contact details.
 
-Quotes issued before booking retries were added require a fresh review.
+Quotes issued before vehicle details were added require a fresh review for new bookings. Retries can still recover an existing booking when the quote identifies its saved attempt.
 
 ## Staff access
 
@@ -81,6 +81,8 @@ php artisan rentgrid:staff-create staff@example.test "Staff Member"
 The command prompts for the password and stores its hash. Accounts created by other means start without staff access. Open `/staff` on the Next.js origin to sign in and use the **Sign out** button there to end the session.
 
 Choose **Manage fleet** to add or edit an individual vehicle. New vehicles start withdrawn. Publish a listing to open it to bookings, or withdraw it to remove it from customer search and close it to new bookings. Open a vehicle’s availability calendar to view upcoming confirmed bookings and add or remove blocks. A new block starts today or later in the business time zone and includes both dates. The calendar rejects blocks that overlap a confirmed booking.
+
+Vehicle edits include the originally loaded `display_label`, `make`, and `model` under `original_details`. If another staff member saved different details, the edit returns HTTP 409 with `vehicle_details_conflict`. Reload the vehicle details before applying the edit again.
 
 Laravel handles `POST /api/staff/sign-in` and `POST /api/staff/sign-out` with its session guard and CSRF protection. Sign-in allows five attempts per minute for a given email and IP and thirty per IP. The staff page and `GET /api/staff/session` require an authenticated account that passes the `access-staff` gate.
 

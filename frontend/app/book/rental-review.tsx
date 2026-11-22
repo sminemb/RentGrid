@@ -153,11 +153,12 @@ export function RentalReview({ vehicleId, dates, searchUrl }: { vehicleId: strin
       }
 
       if ([409, 419, 422].includes(response.status)) {
-        const problem: ApiProblem & { code?: string } = await response.json();
+        const problem: ApiProblem = await response.json();
         if (controller.signal.aborted) return;
 
         const next = problem.code === "vehicle_unavailable" ? "search" : undefined;
-        const needsQuote = response.status === 419 || problem.code === "price_changed" || !!problem.errors?.quote_token;
+        const needsQuote = response.status === 419 || problem.code === "price_changed" ||
+          problem.code === "vehicle_changed" || !!problem.errors?.quote_token;
         const message = needsQuote
           ? problem.errors?.quote_token?.[0] ?? (response.status === 419 ? "Your session expired. Review an updated quote to continue." : problem.message)
           : problem.message;

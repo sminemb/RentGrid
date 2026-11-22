@@ -194,6 +194,39 @@ class BookingConcurrencyTest extends TestCase
         }
     }
 
+    public function test_simultaneous_staff_edits_recheck_the_original_details_under_the_vehicle_lock(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        $original = $vehicle->details();
+        $path = "/api/staff/vehicles/{$vehicle->id}";
+        $first = $this->prepareStaffRequest('rentgrid-edit-first', $path, 'PUT', [
+            ...$original, 'display_label' => 'Renamed vehicle', 'original_details' => $original,
+        ]);
+        $second = $this->prepareStaffRequest('rentgrid-edit-second', $path, 'PUT', [
+            ...$original, 'model' => 'City Hatchback', 'original_details' => $original,
+        ]);
+
+        try {
+            DB::beginTransaction();
+            try {
+                Vehicle::query()->lockForUpdate()->findOrFail($vehicle->id);
+                $first->start();
+                $second->start();
+                $this->waitForDatabaseLocks(['rentgrid-edit-first' => $first, 'rentgrid-edit-second' => $second]);
+            } finally {
+                DB::rollBack();
+            }
+
+            $responses = array_column([$this->workerResponse($first), $this->workerResponse($second)], 'body', 'status');
+            $this->assertEqualsCanonicalizing([200, 409], array_keys($responses));
+            $this->assertSame('vehicle_details_conflict', $responses[409]['code']);
+            $this->assertDatabaseHas('vehicles', $responses[200]['data']);
+        } finally {
+            $first->stop(0);
+            $second->stop(0);
+        }
+    }
+
     private function quote(Vehicle $vehicle): TestResponse
     {
         $this->app['session']->forgetDrivers();

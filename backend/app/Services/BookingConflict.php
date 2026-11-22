@@ -22,6 +22,11 @@ final class BookingConflict extends RuntimeException
         return new self('price_changed', 'The rental price or pickup details changed. Review the updated quote before booking.');
     }
 
+    public static function vehicleChanged(): self
+    {
+        return new self('vehicle_changed', 'The vehicle details in this quote are out of date. Review the updated quote before booking.');
+    }
+
     public function render(): JsonResponse
     {
         return response()->json(

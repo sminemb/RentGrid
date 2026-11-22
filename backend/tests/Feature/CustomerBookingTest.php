@@ -6,6 +6,7 @@ use App\Models\ReservationStatus;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
@@ -122,11 +123,16 @@ class CustomerBookingTest extends TestCase
         $this->assertDatabaseCount('reservations', 0);
     }
 
-    public function test_booking_accepts_a_quote_with_a_max_length_unicode_pickup_location(): void
+    public function test_booking_accepts_a_quote_with_max_length_unicode_details(): void
     {
         $location = str_repeat("\u{20000}", 255);
         config(['rentgrid.booking.pickup_location' => $location]);
-        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $vehicle = Vehicle::factory()->create([
+            'is_published' => true,
+            'display_label' => $location,
+            'make' => $location,
+            'model' => $location,
+        ]);
 
         $quote = $this->quote($vehicle)->assertOk()->assertJsonPath('pickup_location', $location);
 
@@ -233,6 +239,50 @@ class CustomerBookingTest extends TestCase
         $this->assertDatabaseCount('reservations', 0);
     }
 
+    public function test_booking_requires_a_new_review_after_vehicle_details_change(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true, 'make' => 'Honda', 'model' => 'City']);
+        $quote = $this->quote($vehicle)->assertOk();
+        $vehicle->update(['make' => 'Toyota', 'model' => 'Vios']);
+
+        $this->book($quote)->assertConflict()->assertJsonPath('code', 'vehicle_changed');
+        $this->assertDatabaseCount('reservations', 0);
+
+        $updatedQuote = $this->quote($vehicle)->assertOk()->assertJsonPath('vehicle.model', 'Vios');
+        $this->book($updatedQuote)->assertCreated()->assertJsonPath('vehicle', $updatedQuote->json('vehicle'));
+    }
+
+    public function test_confirmation_and_retry_keep_the_reviewed_vehicle_details(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $quote = $this->quote($vehicle)->assertOk();
+        $reviewedVehicle = $quote->json('vehicle');
+        $reference = $this->book($quote)->assertCreated()->assertJsonPath('vehicle', $reviewedVehicle)->json('reference');
+
+        $vehicle->update(['display_label' => 'Vios 01', 'make' => 'Toyota', 'model' => 'Vios']);
+
+        $this->getJson("/api/bookings/{$reference}")->assertOk()->assertJsonPath('vehicle', $reviewedVehicle);
+        $this->book($quote)->assertOk()
+            ->assertJsonPath('reference', $reference)
+            ->assertJsonPath('vehicle', $reviewedVehicle);
+        $this->assertDatabaseCount('reservations', 1);
+    }
+
+    public function test_older_quotes_can_only_recover_an_existing_reservation(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $quote = $this->quote($vehicle)->assertOk();
+        $originalPayload = json_decode(Crypt::decryptString($quote->json('quote_token')), true, flags: JSON_THROW_ON_ERROR);
+        unset($originalPayload['vehicle_details']);
+        $legacyToken = Crypt::encryptString(json_encode($originalPayload, JSON_THROW_ON_ERROR));
+
+        $this->book($quote, $legacyToken)->assertConflict()->assertJsonPath('code', 'vehicle_changed');
+        $this->assertDatabaseCount('reservations', 0);
+
+        $reference = $this->book($quote)->assertCreated()->json('reference');
+        $this->book($quote, $legacyToken)->assertOk()->assertJsonPath('reference', $reference);
+    }
+
     public function test_booking_rechecks_publication_and_staff_blocks(): void
     {
         $vehicle = Vehicle::factory()->create(['is_published' => true]);
@@ -256,12 +306,12 @@ class CustomerBookingTest extends TestCase
         ]);
     }
 
-    private function book(TestResponse $quote): TestResponse
+    private function book(TestResponse $quote, ?string $token = null): TestResponse
     {
         $cookie = config('session.cookie');
 
         return $this->withCredentials()
             ->withUnencryptedCookie($cookie, $quote->getCookie($cookie, false)->getValue())
-            ->postJson('/api/bookings', [...self::CONTACT, 'quote_token' => $quote->json('quote_token')]);
+            ->postJson('/api/bookings', [...self::CONTACT, 'quote_token' => $token ?? $quote->json('quote_token')]);
     }
 }

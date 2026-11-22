@@ -9,7 +9,7 @@ class StoreBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'quote_token' => ['required', 'string', 'max:4096'],
+            'quote_token' => ['required', 'string', 'max:12288'],
             'vehicle_id' => ['missing'],
             'pickup_date' => ['missing'],
             'return_date' => ['missing'],

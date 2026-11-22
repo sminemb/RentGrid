@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookingRequest;
-use App\Http\Resources\VehicleResource;
 use App\Models\Reservation;
 use App\Services\BookingService;
 use Illuminate\Database\QueryException;
@@ -50,7 +49,7 @@ class BookingController extends Controller
             'reference' => $reservation->reference,
             'status' => $reservation->status->value,
             'vehicle_id' => $reservation->vehicle_id,
-            'vehicle' => new VehicleResource($reservation->vehicle),
+            'vehicle' => $reservation->confirmedVehicle(),
             'pickup_date' => $reservation->pickup_date->toDateString(),
             'return_date' => $reservation->return_date->toDateString(),
             'pickup_location' => $reservation->pickup_location,

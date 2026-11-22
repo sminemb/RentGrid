@@ -39,6 +39,11 @@ final class BookingService
                 throw BookingConflict::unavailable();
             }
 
+            $vehicleDetails = $quote['vehicle_details'] ?? null;
+            if ($vehicle->details() !== $vehicleDetails) {
+                throw BookingConflict::vehicleChanged();
+            }
+
             $terms = $this->pricing->termsFor($period);
             if ($terms !== $quote['terms']) {
                 throw BookingConflict::priceChanged();
@@ -52,6 +57,7 @@ final class BookingService
                 'guest_name' => $name,
                 'guest_email' => $email,
                 'guest_phone' => $phone,
+                'vehicle_details' => $vehicleDetails,
                 'pickup_location' => $terms['pickup_location'],
                 'pickup_instructions' => $this->config->get('rentgrid.pickup_instructions'),
                 'cancellation_terms' => $this->config->get('rentgrid.cancellation_terms'),

@@ -15,6 +15,7 @@ class Reservation extends Model
         'guest_name',
         'guest_email',
         'guest_phone',
+        'vehicle_details',
         'pickup_location',
         'pickup_instructions',
         'cancellation_terms',
@@ -31,12 +32,18 @@ class Reservation extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
+    public function confirmedVehicle(): array
+    {
+        return ['id' => $this->vehicle_id, ...($this->vehicle_details ?? $this->vehicle->details())];
+    }
+
     protected function casts(): array
     {
         return [
             'pickup_date' => 'immutable_date',
             'return_date' => 'immutable_date',
             'status' => ReservationStatus::class,
+            'vehicle_details' => 'array',
             'amount_due_minor' => 'integer',
         ];
     }
