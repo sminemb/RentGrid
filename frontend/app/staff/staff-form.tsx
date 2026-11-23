@@ -41,7 +41,7 @@ export function useStaffMutation() {
       } else if (response.status === 401) {
         window.location.replace("/staff/sign-in");
       } else if (response.status === 403) {
-        setProblem({ message: "This account does not have staff access." });
+        setProblem({ message: "This account doesn’t have permission for this action." });
       } else if (response.status === 409 || response.status === 422) {
         setProblem(await response.json());
         if (response.status === 409) startTransition(() => router.refresh());
@@ -61,13 +61,19 @@ export function useStaffMutation() {
   return { pending, problem, status, submit };
 }
 
-export function StaffField({ label, error, ...props }: ComponentProps<"input"> & { label: string; error?: string }) {
+export function StaffField({ label, error, hint, ...props }: ComponentProps<"input"> & {
+  label: string;
+  error?: string;
+  hint?: string;
+}) {
   const id = useId();
+  const description = [hint ? `${id}-hint` : "", error ? `${id}-error` : ""].filter(Boolean).join(" ");
 
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
-      <input {...props} id={id} aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined} />
+      <input {...props} id={id} aria-invalid={error ? true : undefined} aria-describedby={description || undefined} />
+      {hint && <small id={`${id}-hint`}>{hint}</small>}
       {error && <p className="error" id={`${id}-error`}>{error}</p>}
     </div>
   );

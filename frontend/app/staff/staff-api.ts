@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+export type StaffSession = { name: string; can_create_staff: boolean };
+
 export async function staffRequest(path: `/api/staff/${string}`) {
   const cookie = (await headers()).get("cookie");
   const origin = process.env.LARAVEL_API_ORIGIN ?? "http://127.0.0.1:8000";
