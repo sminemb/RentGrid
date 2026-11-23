@@ -25,7 +25,7 @@ php artisan test
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-For an optional synthetic fleet, run `php artisan db:seed --class=FleetSeeder` before starting the development server. It adds two published vehicles with the same make and model and distinct display labels.
+For an optional synthetic fleet, run `php artisan db:seed --class=FleetSeeder` before starting the development server. It creates 100 published vehicles across five models, with labels such as `Vios 101 · Silver` and `Innova 501 · Silver`. Rerunning the seeder fills in missing fleet vehicles and updates labels from the original seeder on the existing records.
 
 In a second terminal, start from the repository root.
 
