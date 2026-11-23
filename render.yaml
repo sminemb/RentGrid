@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: rentgrid-staging-api
+    runtime: docker
+    region: singapore
+    plan: free
+    branch: staging
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /up
+    envVars:
+      - key: APP_ENV
+        value: staging
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY_RAW
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: rentgrid-staging-db
+          property: connectionString
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: BUSINESS_TIMEZONE
+        value: Asia/Manila
+      - key: RENTAL_PICKUP_LOCATION
+        value: "Demo Rental Desk (staging)"
+      - key: RENTAL_CURRENCY
+        value: PHP
+      - key: RENTAL_DAILY_RATE_MINOR
+        value: "150000"
+      - key: RENTAL_FEE_MINOR
+        value: "10000"
+      - key: RENTAL_DEPOSIT_MINOR
+        value: "50000"
+
