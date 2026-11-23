@@ -66,10 +66,10 @@ class StaffAccessTest extends TestCase
             ->assertHeader('Retry-After');
     }
 
-    public function test_provisioning_creates_a_staff_account_with_a_hashed_password(): void
+    public function test_provisioned_staff_can_sign_in_with_a_password_that_looks_like_a_bcrypt_hash(): void
     {
         $email = 'new.staff@example.test';
-        $password = 'synthetic staff password';
+        $password = password_hash('synthetic staff password', PASSWORD_BCRYPT, ['cost' => 4]);
         $this->artisan('rentgrid:staff-create', ['email' => $email, 'name' => 'New Staff'])
             ->expectsQuestion('Password', $password)
             ->expectsQuestion('Confirm password', $password)
@@ -77,8 +77,10 @@ class StaffAccessTest extends TestCase
 
         $user = User::query()->where('email', $email)->firstOrFail();
         $this->assertTrue($user->is_staff);
-        $this->assertTrue(Hash::check($password, $user->password));
         $this->assertFalse($user->canCreateStaff());
+        $this->postJson('/api/staff/sign-in', ['email' => $email, 'password' => $password])
+            ->assertNoContent();
+        $this->assertAuthenticatedAs($user);
     }
 
     public function test_only_staff_administrators_can_create_staff_accounts(): void
