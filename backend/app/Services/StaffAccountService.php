@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -38,7 +39,8 @@ class StaffAccountService
 
     public function create(string $name, string $email, #[SensitiveParameter] string $password, bool $administrator = false): void
     {
-        $user = new User(['name' => $name, 'email' => $email, 'password' => $password]);
+        // The model cast preserves values it recognizes as hashes, so hash the submitted password explicitly.
+        $user = new User(['name' => $name, 'email' => $email, 'password' => Hash::make($password)]);
         $user->is_staff = true;
         $user->is_staff_admin = $administrator;
 

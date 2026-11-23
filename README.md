@@ -98,7 +98,7 @@ In production, put a trusted ingress in front of Next.js and restrict Next.js to
 
 Set `TRUSTED_PROXY_IPS` in the Laravel environment to the comma-separated IPv4 or IPv6 addresses that connect directly to Laravel. With the Next.js rewrite, use the Next.js server addresses as seen by Laravel. Rebuild Laravel's configuration cache after changing the setting. When the list is empty, Laravel uses the connection IP.
 
-## Browser regression test
+## Browser regression tests
 
 Use the dedicated `rentgrid_test` PostgreSQL database. Run `php artisan migrate --env=testing` from `backend`, then start `php artisan serve --env=testing` with the sample booking terms above and `SESSION_DRIVER=database`. Point the running Next.js app at that Laravel server. Run these commands from `frontend`.
 
@@ -108,4 +108,4 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The test defaults to `http://localhost:3000`. Set `RENTGRID_E2E_URL` if the local frontend uses a different port. The test creates and removes its own vehicles and reservation in the test database.
+The tests default to `http://localhost:3000`. Set `RENTGRID_E2E_URL` if the local frontend uses a different port. The booking recovery test cleans up its vehicles and reservation, and the staff onboarding test cleans up its test accounts and signed-in sessions.
