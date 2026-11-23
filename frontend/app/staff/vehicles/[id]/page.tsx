@@ -7,13 +7,14 @@ import { PublicationControl, VehicleForm } from "../vehicle-form";
 
 export const metadata = { title: "Manage vehicle", robots: { index: false } };
 
-export default async function VehiclePage({ params }: PageProps<"/staff/vehicles/[id]">) {
+export default async function VehiclePage({ params, searchParams }: PageProps<"/staff/vehicles/[id]">) {
   const { id } = await params;
   if (!/^[0-9]+$/.test(id)) notFound();
   const path = `/staff/vehicles/${id}` as const;
+  const showPastBlocks = (await searchParams).include_past_blocks === "1";
   const [details, availability] = await Promise.all([
     staffRequest(`/api${path}`),
-    staffRequest(`/api${path}/availability`),
+    staffRequest(`/api${path}/availability${showPastBlocks ? "?include_past_blocks=1" : ""}`),
   ]);
   const vehicle: { data: StaffVehicle } | undefined = details?.ok ? await details.json() : undefined;
   const calendar: StaffCalendar | undefined = availability?.ok ? await availability.json() : undefined;
@@ -35,7 +36,7 @@ export default async function VehiclePage({ params }: PageProps<"/staff/vehicles
           {calendar ? (
             <section id="availability" className="trip-panel availability-panel" aria-labelledby="availability-heading">
               <h2 id="availability-heading">Availability calendar</h2>
-              <AvailabilityEditor vehicleId={vehicle.data.id} calendar={calendar} />
+              <AvailabilityEditor vehicleId={vehicle.data.id} calendar={calendar} showPastBlocks={showPastBlocks} />
             </section>
           ) : <FleetError status={availability?.status} retry={path} />}
         </div>

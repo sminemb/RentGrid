@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type FormEvent } from "react";
 import type { CalendarRange, StaffCalendar } from "./fleet-types";
 import { StaffFeedback, StaffField, useStaffMutation } from "../staff-form";
@@ -19,7 +20,11 @@ function RangeLabel({ starts_on, ends_on }: CalendarRange) {
   );
 }
 
-export function AvailabilityEditor({ vehicleId, calendar }: { vehicleId: number; calendar: StaffCalendar }) {
+export function AvailabilityEditor({ vehicleId, calendar, showPastBlocks }: {
+  vehicleId: number;
+  calendar: StaffCalendar;
+  showPastBlocks: boolean;
+}) {
   const { pending, problem, status, submit } = useStaffMutation();
   const path = `/api/staff/vehicles/${vehicleId}/availability/blocks` as const;
   const ranges = [
@@ -58,7 +63,7 @@ export function AvailabilityEditor({ vehicleId, calendar }: { vehicleId: number;
         ) : (
           <ul role="list">
             {ranges.map((range) => (
-              <li className="calendar-row" key={"id" in range ? `block-${range.id}` : `booking-${range.starts_on}`}>
+              <li className="calendar-row" key={"id" in range ? `block-${range.id}` : range.reference}>
                 <div>
                   <RangeLabel {...range} />
                   <p>{"id" in range ? (range.ends_on < calendar.today ? "Past block" : "Staff block") : "Confirmed booking"}</p>
@@ -74,10 +79,19 @@ export function AvailabilityEditor({ vehicleId, calendar }: { vehicleId: number;
                     Remove block
                   </button>
                 )}
+                {"reference" in range && (
+                  <Link className="action-link" href={`/staff/reservations?${new URLSearchParams({ reference: range.reference })}`}>
+                    {range.reference}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
         )}
+        <Link className="button button-secondary" prefetch={false}
+          href={`/staff/vehicles/${vehicleId}${showPastBlocks ? "" : "?include_past_blocks=1"}#availability`}>
+          {showPastBlocks ? "Hide past blocks" : "Show past blocks"}
+        </Link>
       </div>
     </>
   );

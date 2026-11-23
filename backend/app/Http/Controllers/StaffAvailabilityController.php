@@ -16,19 +16,21 @@ final class StaffAvailabilityController extends Controller
 {
     public function __construct(private readonly AvailabilityService $availability) {}
 
-    public function index(Vehicle $vehicle): JsonResponse
+    public function index(Request $request, Vehicle $vehicle): JsonResponse
     {
         $today = $this->availability->businessToday();
         $bookings = $vehicle->reservations()
             ->where('status', ReservationStatus::Confirmed->value)
             ->where('return_date', '>=', $today)
             ->orderBy('pickup_date')
-            ->get(['pickup_date', 'return_date'])
+            ->get(['pickup_date', 'return_date', 'reference'])
             ->map(fn (Reservation $booking) => [
                 'starts_on' => $booking->pickup_date->toDateString(),
                 'ends_on' => $booking->return_date->toDateString(),
+                'reference' => $booking->reference,
             ]);
         $blocks = $vehicle->availabilityBlocks()
+            ->when(! $request->boolean('include_past_blocks'), fn ($query) => $query->where('ends_on', '>=', $today))
             ->orderBy('starts_on')->orderBy('id')->get()
             ->map($this->blockData(...));
 

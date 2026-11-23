@@ -62,11 +62,13 @@ RENTAL_DEPOSIT_MINOR=50000
 
 Set an ISO 4217 currency code and enter amounts in its smallest unit, such as centavos for PHP. The quote charges the daily rate for each day from pickup through return, plus any one-time fee and deposit. The example charges PHP 1,500 per day, a PHP 100 fee, and a PHP 500 deposit. Omit the fee and deposit settings when they are zero. Quotes require a configured pickup location, currency, and daily rate.
 
+`RENTAL_MAX_DAYS` defaults to 30 inclusive rental days. `RENTAL_MAX_ADVANCE_DAYS` defaults to pickup up to 180 days after the current date in the business time zone. Search, quotes, and new bookings enforce both settings. Booking submissions allow five attempts per minute per session and 30 per client IP.
+
 `GET /api/vehicles/availability` accepts `pickup_date` and `return_date` in `YYYY-MM-DD` format. After bootstrapping the session with `GET /api/session`, `POST /api/booking-quotes` accepts those dates and `vehicle_id`. `POST /api/bookings` accepts the returned `quote_token` and the guest's `name`, `email`, and `phone`. Both POST requests use the same session and CSRF cookie. The quote records the selected vehicle, its displayed details, and the rental terms. A new booking returns HTTP 201. Sending the same quote token again from the same session returns HTTP 200 with the existing reference and current status. Conflicts return `vehicle_unavailable`, `vehicle_changed`, or `price_changed`. Changes to the vehicle details or rental terms require the guest to review an updated quote.
 
 The browser opens `/book/confirmation/{reference}` after submission. It reads the saved booking from `GET /api/bookings/{reference}`, which requires the original guest session and returns a private, non-cacheable response. The confirmation shows the saved vehicle label, make, and model. For existing guest bookings, the migration saves the vehicle details available at migration time. Configure `RENTAL_PICKUP_INSTRUCTIONS` and `RENTAL_CANCELLATION_TERMS` to include approved business wording. RentGrid saves that wording at booking time. With no configured cancellation terms, the confirmation directs guests to contact the business to request changes or cancellations.
 
-If the confirmation response is interrupted, the guest can choose **Recover confirmation** on the same checkout, including after a reload in the same tab. Recovery uses the original quote and contact details.
+If the confirmation response is interrupted, search and checkout prompt the guest to recover the previous booking before confirming a replacement. The signed quote is saved in the same tab for 30 minutes. `POST /api/bookings/recover` checks the original guest session and returns the saved reference if the booking exists. If the lookup finds no confirmation, the guest can re-enter their contact details and retry the same attempt or return to search. The app keeps contact details out of tab storage.
 
 Quotes issued before vehicle details were added require a fresh review for new bookings. Retries can still recover an existing booking when the quote identifies its saved attempt.
 
@@ -80,11 +82,11 @@ php artisan rentgrid:staff-create staff@example.test "Staff Member"
 
 The command prompts for the password and stores its hash. Accounts created by other means start without staff access. Open `/staff` on the Next.js origin to sign in and use the **Sign out** button there to end the session.
 
-Choose **Manage fleet** to add or edit an individual vehicle. New vehicles start withdrawn. Publish a listing to open it to bookings, or withdraw it to remove it from customer search and close it to new bookings. Open a vehicle’s availability calendar to view upcoming confirmed bookings and add or remove blocks. A new block starts today or later in the business time zone and includes both dates. The calendar rejects blocks that overlap a confirmed booking.
+Choose **Manage fleet** to add or edit an individual vehicle. New vehicles start withdrawn. Publish a listing to open it to bookings, or withdraw it to remove it from customer search and close it to new bookings. A vehicle’s availability calendar shows current and upcoming blocks and confirmed bookings. Choose **Show past blocks** to load ended blocks. Follow a booking reference to look up or cancel the reservation. A new block starts today or later in the business time zone and includes both dates. The calendar rejects blocks that overlap a confirmed booking.
 
 Vehicle edits include the originally loaded `display_label`, `make`, and `model` under `original_details`. If another staff member saved different details, the edit returns HTTP 409 with `vehicle_details_conflict`. Reload the vehicle details before applying the edit again.
 
-Choose **Find a reservation** and enter the reference shown on the guest’s confirmation. Check the vehicle, dates, and guest contact details before selecting **Cancel reservation**. Once you confirm the cancellation, staff can still look up the cancelled record, and customers can book those dates if the vehicle is otherwise available.
+Choose **Find a reservation** and enter the reference shown on the guest’s confirmation or the calendar. Lookup accepts either letter case. The migration assigns references to older reservations that had none. Check the vehicle, dates, and guest contact details before selecting **Cancel reservation**. Once you confirm the cancellation, staff can still look up the cancelled record, and customers can book those dates if the vehicle is otherwise available.
 
 `GET /api/staff/reservations/{reference}` and `POST /api/staff/reservations/{reference}/cancel` require staff access. Repeating a cancellation returns the same cancelled reservation. The original guest’s confirmation and booking retry also show the current status.
 
@@ -93,3 +95,15 @@ Laravel handles `POST /api/staff/sign-in` and `POST /api/staff/sign-out` with it
 In production, put a trusted ingress in front of Next.js and restrict Next.js to that ingress. Keep Laravel private to its upstream proxy. Have the ingress replace `X-Forwarded-For` with the verified client IP. For example, an Nginx ingress that directly receives client connections can use `proxy_set_header X-Forwarded-For $remote_addr;`. The Next.js rewrite forwards that header to Laravel.
 
 Set `TRUSTED_PROXY_IPS` in the Laravel environment to the comma-separated IPv4 or IPv6 addresses that connect directly to Laravel. With the Next.js rewrite, use the Next.js server addresses as seen by Laravel. Rebuild Laravel's configuration cache after changing the setting. When the list is empty, Laravel uses the connection IP.
+
+## Browser regression test
+
+Use the dedicated `rentgrid_test` PostgreSQL database. Run `php artisan migrate --env=testing` from `backend`, then start `php artisan serve --env=testing` with the sample booking terms above and `SESSION_DRIVER=database`. Point the running Next.js app at that Laravel server. Run these commands from `frontend`.
+
+```powershell
+npm ci
+npx playwright install chromium
+npm run test:e2e
+```
+
+The test defaults to `http://localhost:3000`. Set `RENTGRID_E2E_URL` if the local frontend uses a different port. The test creates and removes its own vehicles and reservation in the test database.

@@ -8,7 +8,6 @@ use App\Models\Vehicle;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 final class BookingService
 {
@@ -53,7 +52,6 @@ final class BookingService
                 'pickup_date' => $period->pickupDate,
                 'return_date' => $period->returnDate,
                 'status' => ReservationStatus::Confirmed,
-                'reference' => 'RG-'.Str::ulid(),
                 'guest_name' => $name,
                 'guest_email' => $email,
                 'guest_phone' => $phone,
@@ -75,6 +73,21 @@ final class BookingService
             ->where('reference', $reference)
             ->where('guest_session_key', BookingQuoteService::sessionKey($session))
             ->first();
+    }
+
+    public function recover(string $quoteToken, Session $session): ?string
+    {
+        $quote = $this->quotes->read($quoteToken, $session);
+
+        return DB::transaction(function () use ($quote): ?string {
+            // Wait for an in-flight confirmation holding the vehicle lock.
+            $vehicle = Vehicle::query()->lockForUpdate()->find($quote['vehicle_id']);
+
+            return $vehicle?->reservations()
+                ->where('booking_attempt_key', hash('sha256', $quote['attempt']))
+                ->where('guest_session_key', $quote['session'])
+                ->value('reference');
+        });
     }
 
     public function cancel(Reservation $reservation): Reservation

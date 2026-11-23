@@ -2,6 +2,8 @@
 
 return [
     'business_timezone' => env('BUSINESS_TIMEZONE', 'Asia/Manila'),
+    'max_rental_days' => env('RENTAL_MAX_DAYS', 30),
+    'max_advance_days' => env('RENTAL_MAX_ADVANCE_DAYS', 180),
     'pickup_instructions' => env('RENTAL_PICKUP_INSTRUCTIONS'),
     'cancellation_terms' => env('RENTAL_CANCELLATION_TERMS'),
     'booking' => [

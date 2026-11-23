@@ -18,11 +18,15 @@ class AvailabilityService
 
     public function period(string $pickupDate, string $returnDate): RentalPeriod
     {
-        return RentalPeriod::fromDates(
-            $pickupDate,
-            $returnDate,
-            $this->businessToday(),
+        $today = $this->businessToday();
+        $period = RentalPeriod::fromDates($pickupDate, $returnDate, $today);
+        $period->validateBookingLimits(
+            $today,
+            max(1, (int) config('rentgrid.max_rental_days')),
+            max(0, (int) config('rentgrid.max_advance_days')),
         );
+
+        return $period;
     }
 
     public function businessToday(): string

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 import { apiRequest } from "@/lib/api";
 import type { ApiProblem, RentalDates, Vehicle } from "@/lib/rentals";
 import { Icon, LoadingRows } from "./rental-ui";
+import { BookingRecoveryNotice } from "./book/booking-recovery-notice";
+import { pendingBooking } from "./book/pending-booking";
 
 type SearchResult = { data: Vehicle[] } | { problem: ApiProblem };
 
@@ -14,6 +16,9 @@ export function VehicleSearch({ dates, searched, children }: { dates: RentalDate
   const result = search?.query === query ? search.result : undefined;
   const problem = result && "problem" in result ? result.problem : undefined;
   const vehicles = result && "data" in result ? result.data : undefined;
+  const pendingHref = useSyncExternalStore(pendingBooking.subscribe, pendingBooking.currentHref, () => undefined);
+
+  useEffect(() => pendingBooking.restore(), []);
 
   useEffect(() => {
     if (!searched) return;
@@ -78,6 +83,8 @@ export function VehicleSearch({ dates, searched, children }: { dates: RentalDate
         {children}
         {dateForm}
       </div>
+
+      {pendingHref && <BookingRecoveryNotice href={pendingHref} />}
 
       {searched && (
         <section className="results" aria-labelledby="results-heading">

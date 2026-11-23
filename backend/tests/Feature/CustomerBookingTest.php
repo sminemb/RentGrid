@@ -79,6 +79,56 @@ class CustomerBookingTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors(['name', 'email', 'phone']);
     }
 
+    public function test_guest_booking_limits_apply_to_quotes_and_are_rechecked_before_confirmation(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        config(['rentgrid.max_rental_days' => 3, 'rentgrid.max_advance_days' => 9]);
+
+        $quote = $this->quote($vehicle, '2026-06-12')->assertOk();
+        $this->quote($vehicle, '2026-06-13')->assertUnprocessable()->assertJsonValidationErrors('return_date');
+        $this->postJson('/api/booking-quotes', [
+            'vehicle_id' => $vehicle->id, 'pickup_date' => '2026-06-11', 'return_date' => '2026-06-11',
+        ])->assertUnprocessable()->assertJsonValidationErrors('pickup_date');
+
+        config(['rentgrid.max_rental_days' => 2]);
+        $this->book($quote)->assertUnprocessable()->assertJsonValidationErrors('return_date');
+        config(['rentgrid.max_advance_days' => 8]);
+        $this->book($quote)->assertUnprocessable()->assertJsonValidationErrors('pickup_date');
+        $this->assertDatabaseCount('reservations', 0);
+    }
+
+    public function test_booking_submissions_are_rate_limited(): void
+    {
+        $cookie = config('session.cookie');
+        $session = $this->getJson('/api/session')->assertOk();
+        $this->withCredentials()->withUnencryptedCookie($cookie, $session->getCookie($cookie, false)->getValue());
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $this->postJson('/api/bookings', [])->assertUnprocessable();
+        }
+
+        $this->postJson('/api/bookings', [])->assertTooManyRequests()->assertHeader('Retry-After');
+    }
+
+    public function test_attempt_recovery_is_read_only_and_requires_the_original_session(): void
+    {
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $quote = $this->quote($vehicle)->assertOk();
+        $attempt = ['quote_token' => $quote->json('quote_token')];
+        $cookie = config('session.cookie');
+        $this->withCredentials()->withUnencryptedCookie($cookie, $quote->getCookie($cookie, false)->getValue());
+
+        $this->postJson('/api/bookings/recover', $attempt)->assertNoContent();
+        $this->assertDatabaseCount('reservations', 0);
+        $reference = $this->book($quote)->assertCreated()->json('reference');
+        $this->postJson('/api/bookings/recover', $attempt)->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')->assertExactJson(['reference' => $reference]);
+        $this->assertDatabaseCount('reservations', 1);
+
+        $this->withUnencryptedCookie($cookie, 'other-guest')->postJson('/api/bookings/recover', $attempt)
+            ->assertUnprocessable()->assertJsonValidationErrors('quote_token');
+    }
+
     public function test_booking_commits_the_reviewed_amount_and_private_contact_details(): void
     {
         $vehicle = Vehicle::factory()->create(['is_published' => true]);

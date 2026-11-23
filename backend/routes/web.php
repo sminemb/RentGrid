@@ -11,7 +11,8 @@ use App\Models\Vehicle;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/api/booking-quotes', BookingQuoteController::class);
-Route::post('/api/bookings', [BookingController::class, 'store']);
+Route::post('/api/bookings', [BookingController::class, 'store'])->middleware('throttle:guest-booking');
+Route::post('/api/bookings/recover', [BookingController::class, 'recover']);
 Route::get('/api/bookings/{reference}', [BookingController::class, 'show']);
 
 Route::prefix('api/staff')->group(function () {

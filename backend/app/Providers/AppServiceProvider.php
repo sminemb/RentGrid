@@ -27,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define('access-staff', fn (User $user): bool => $user->hasStaffAccess());
 
+        RateLimiter::for('guest-booking', fn (Request $request): array => [
+            Limit::perMinute(30)->by('ip:'.$request->ip()),
+            Limit::perMinute(5)->by('session:'.$request->session()->getId()),
+        ]);
+
         RateLimiter::for('staff-sign-in', function (Request $request): array {
             $email = $request->input('email');
             $account = is_string($email) ? Str::lower(trim($email)) : '';

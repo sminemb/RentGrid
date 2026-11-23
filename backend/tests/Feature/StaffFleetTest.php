@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class StaffFleetTest extends TestCase
@@ -116,7 +117,7 @@ class StaffFleetTest extends TestCase
         $pickup = $this->futureDay()->toDateString();
         $return = $this->futureDay()->addDay()->toDateString();
         $next = $this->futureDay()->addDays(2)->toDateString();
-        $vehicle->reservations()->create([
+        $booking = $vehicle->reservations()->create([
             'pickup_date' => $pickup, 'return_date' => $return, 'status' => ReservationStatus::Confirmed,
         ]);
         $vehicle->reservations()->create([
@@ -124,7 +125,9 @@ class StaffFleetTest extends TestCase
         ]);
         $url = "/api/staff/vehicles/{$vehicle->id}/availability";
 
-        $this->getJson($url)->assertOk()->assertJsonPath('bookings', [['starts_on' => $pickup, 'ends_on' => $return]]);
+        $this->getJson($url)->assertOk()->assertJsonPath('bookings', [[
+            'starts_on' => $pickup, 'ends_on' => $return, 'reference' => $booking->reference,
+        ]]);
         $this->postJson("$url/blocks", ['starts_on' => $next, 'ends_on' => $return])
             ->assertUnprocessable()->assertJsonValidationErrors('ends_on');
         $this->postJson("$url/blocks", ['starts_on' => '2027-02-30', 'ends_on' => $return])
@@ -133,6 +136,48 @@ class StaffFleetTest extends TestCase
             ->assertConflict()->assertJsonPath('code', 'confirmed_booking_overlap');
         $this->assertDatabaseCount('availability_blocks', 0);
         $this->postJson("$url/blocks", ['starts_on' => $next, 'ends_on' => $next])->assertCreated();
+    }
+
+    public function test_staff_can_find_and_cancel_a_backfilled_reservation_from_the_calendar(): void
+    {
+        $this->signInStaff();
+        $vehicle = Vehicle::factory()->create(['is_published' => true]);
+        $date = $this->futureDay()->toDateString();
+        $migration = require database_path('migrations/2026_11_23_000001_backfill_reservation_references.php');
+        $migration->down();
+        $existing = $vehicle->reservations()->create([
+            'pickup_date' => $date, 'return_date' => $date, 'status' => ReservationStatus::Cancelled,
+        ]);
+        $legacy = DB::table('reservations')->insertGetId([
+            'vehicle_id' => $vehicle->id, 'pickup_date' => $date, 'return_date' => $date, 'status' => 'confirmed',
+        ]);
+
+        $migration->up();
+
+        $calendar = $this->getJson("/api/staff/vehicles/{$vehicle->id}/availability")->assertOk();
+        $reference = $calendar->json('bookings.0.reference');
+        $this->assertMatchesRegularExpression('/^RG-[0-9A-Z]{26}$/', $reference);
+        $this->assertDatabaseHas('reservations', ['id' => $legacy, 'reference' => $reference]);
+        $this->assertDatabaseHas('reservations', ['id' => $existing->id, 'reference' => $existing->reference]);
+        $path = '/api/staff/reservations/'.strtolower($reference);
+        $this->getJson($path)->assertOk()->assertJsonPath('data.reference', $reference);
+        $this->postJson("$path/cancel")->assertOk()->assertJsonPath('data.status', 'cancelled');
+        $this->getJson($this->searchUrl($this->futureDay()))->assertOk()->assertJsonPath('data.0.id', $vehicle->id);
+    }
+
+    public function test_calendar_excludes_ended_blocks_unless_staff_requests_history(): void
+    {
+        $this->signInStaff();
+        $vehicle = Vehicle::factory()->create();
+        $today = today(config('rentgrid.business_timezone'));
+        $yesterday = $today->copy()->subDay()->toDateString();
+        $ended = $vehicle->availabilityBlocks()->create(['starts_on' => $yesterday, 'ends_on' => $yesterday]);
+        $active = $vehicle->availabilityBlocks()->create(['starts_on' => $yesterday, 'ends_on' => $today->toDateString()]);
+        $url = "/api/staff/vehicles/{$vehicle->id}/availability";
+
+        $this->getJson($url)->assertOk()->assertJsonCount(1, 'blocks')->assertJsonPath('blocks.0.id', $active->id);
+        $this->getJson("$url?include_past_blocks=1")->assertOk()->assertJsonCount(2, 'blocks')
+            ->assertJsonPath('blocks.0.id', $ended->id);
     }
 
     private function signInStaff(): void

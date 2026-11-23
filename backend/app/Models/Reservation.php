@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class Reservation extends Model
 {
@@ -26,6 +27,13 @@ class Reservation extends Model
     ];
 
     protected $hidden = ['guest_name', 'guest_email', 'guest_phone', 'booking_attempt_key', 'guest_session_key'];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Reservation $reservation): void {
+            $reservation->reference ??= 'RG-'.Str::ulid();
+        });
+    }
 
     public function vehicle(): BelongsTo
     {

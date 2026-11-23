@@ -36,6 +36,18 @@ final readonly class RentalPeriod
         return (int) $pickup->diff($return)->format('%a') + 1;
     }
 
+    public function validateBookingLimits(string $businessToday, int $maxDays, int $maxAdvanceDays): void
+    {
+        $lastPickup = (new DateTimeImmutable($businessToday.' UTC'))->modify("+{$maxAdvanceDays} days")->format('Y-m-d');
+        if ($this->pickupDate > $lastPickup) {
+            throw ValidationException::withMessages(['pickup_date' => "Choose a pickup date on or before {$lastPickup}."]);
+        }
+
+        if ($this->days() > $maxDays) {
+            throw ValidationException::withMessages(['return_date' => "Choose a rental of {$maxDays} days or fewer, including pickup and return."]);
+        }
+    }
+
     private static function validateDate(string $date, string $field, string $label): void
     {
         $valid = preg_match('/\A([0-9]{4})-([0-9]{2})-([0-9]{2})\z/', $date, $parts)

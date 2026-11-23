@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 final class StaffReservationController extends Controller
 {
@@ -24,7 +25,7 @@ final class StaffReservationController extends Controller
 
     private function findReservation(string $reference): Reservation
     {
-        return Reservation::query()->where('reference', $reference)->first()
+        return Reservation::query()->where('reference', Str::upper($reference))->first()
             ?? abort(404, 'No reservation matches that booking reference.');
     }
 

@@ -319,6 +319,7 @@ input[aria-invalid="true"] { border-color: var(--error); }
 }
 
 .state-message .button { margin-top: .875rem; }
+.booking-recovery { margin-block: 1.25rem; }
 
 .loading-state {
   display: grid;
@@ -685,6 +686,7 @@ input[aria-invalid="true"] { border-color: var(--error); }
 
 .calendar-agenda h3 { margin-bottom: .75rem; }
 .calendar-agenda ul { margin: 0; padding: 0; list-style: none; }
+.calendar-agenda > .button { margin-top: .875rem; }
 
 .calendar-row {
   display: flex;

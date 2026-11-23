@@ -9,6 +9,6 @@ export type CalendarRange = {
 
 export type StaffCalendar = {
   today: string;
-  bookings: CalendarRange[];
+  bookings: (CalendarRange & { reference: string })[];
   blocks: (CalendarRange & { id: number })[];
 };

@@ -8,6 +8,7 @@ use App\Services\BookingService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
@@ -41,6 +42,17 @@ class BookingController extends Controller
         }
 
         return $this->confirmation($reservation, 200);
+    }
+
+    public function recover(Request $request, BookingService $bookings): JsonResponse|Response
+    {
+        $input = $request->validate(['quote_token' => ['required', 'string', 'max:12288']]);
+        $reference = $bookings->recover($input['quote_token'], $request->session());
+        $headers = ['Cache-Control' => 'private, no-store'];
+
+        return $reference === null
+            ? response()->noContent(headers: $headers)
+            : response()->json(['reference' => $reference], headers: $headers);
     }
 
     private function confirmation(Reservation $reservation, int $status): JsonResponse
