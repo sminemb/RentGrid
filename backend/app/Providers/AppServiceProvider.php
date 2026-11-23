@@ -26,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('access-staff', fn (User $user): bool => $user->hasStaffAccess());
+        Gate::define('create-staff-accounts', fn (User $user): bool => $user->canCreateStaff());
 
         RateLimiter::for('guest-booking', fn (Request $request): array => [
             Limit::perMinute(30)->by('ip:'.$request->ip()),

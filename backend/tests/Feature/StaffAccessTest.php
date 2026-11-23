@@ -40,7 +40,7 @@ class StaffAccessTest extends TestCase
         $this->useSession($login)->getJson('/api/staff/session')
             ->assertOk()
             ->assertHeader('Cache-Control', 'no-store, private')
-            ->assertExactJson(['name' => $staff->name]);
+            ->assertExactJson(['name' => $staff->name, 'can_create_staff' => false]);
 
         $this->useSession($login)->postJson('/api/staff/sign-out')->assertNoContent();
         $this->assertNotSame($staffId, session()->getId());
@@ -78,6 +78,64 @@ class StaffAccessTest extends TestCase
         $user = User::query()->where('email', $email)->firstOrFail();
         $this->assertTrue($user->is_staff);
         $this->assertTrue(Hash::check($password, $user->password));
+        $this->assertFalse($user->canCreateStaff());
+    }
+
+    public function test_only_staff_administrators_can_create_staff_accounts(): void
+    {
+        $this->postJson('/api/staff/accounts')->assertUnauthorized();
+        $this->actingAs(User::factory()->create())->postJson('/api/staff/accounts')->assertForbidden();
+        $this->actingAs(User::factory()->create(['is_staff' => true]))
+            ->postJson('/api/staff/accounts')->assertForbidden();
+    }
+
+    public function test_a_provisioned_staff_administrator_can_create_a_staff_account(): void
+    {
+        $password = 'synthetic staff password';
+        $this->artisan('rentgrid:staff-create', [
+            'email' => 'administrator@example.test', 'name' => 'Administrator', '--admin' => true,
+        ])->expectsQuestion('Password', $password)
+            ->expectsQuestion('Confirm password', $password)
+            ->assertSuccessful();
+        $admin = User::query()->where('email', 'administrator@example.test')->firstOrFail();
+        $this->actingAs($admin)->getJson('/api/staff/session')->assertJsonPath('can_create_staff', true);
+
+        $account = [
+            'name' => ' New Staff ',
+            'email' => ' New.Staff@Example.Test ',
+            'password' => $password,
+            'password_confirmation' => $password,
+            'is_staff' => false,
+            'is_staff_admin' => true,
+        ];
+        $this->postJson('/api/staff/accounts', $account)->assertCreated();
+        $staff = User::query()->where('email', 'new.staff@example.test')->firstOrFail();
+        $this->assertSame('New Staff', $staff->name);
+        $this->assertTrue($staff->hasStaffAccess());
+        $this->assertFalse($staff->is_staff_admin);
+        $this->assertTrue(Hash::check($password, $staff->password));
+
+        $this->postJson('/api/staff/accounts', $account)->assertUnprocessable()->assertJsonValidationErrors('email');
+        $this->assertDatabaseCount('users', 2);
+    }
+
+    public function test_staff_creation_rejects_invalid_passwords(): void
+    {
+        $this->actingAs(User::factory()->create(['is_staff' => true, 'is_staff_admin' => true]));
+        $account = ['name' => 'New Staff', 'email' => 'new.staff@example.test'];
+
+        foreach (['too short', str_repeat('é', 37), str_repeat('a', 12)."\0"] as $password) {
+            $this->postJson('/api/staff/accounts', $account + [
+                'password' => $password,
+                'password_confirmation' => $password,
+            ])->assertUnprocessable()->assertJsonValidationErrors('password');
+        }
+
+        $this->postJson('/api/staff/accounts', $account + [
+            'password' => 'synthetic staff password',
+            'password_confirmation' => 'different password',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password_confirmation');
+        $this->assertDatabaseMissing('users', ['email' => $account['email']]);
     }
 
     private function useSession(TestResponse $response): static

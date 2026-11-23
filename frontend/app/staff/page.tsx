@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { staffRequest } from "./staff-api";
+import { staffRequest, type StaffSession } from "./staff-api";
 import { StaffSignOut } from "./staff-sign-out";
 
 export const metadata = { title: "Staff access", robots: { index: false } };
 
 export default async function StaffPage() {
   const session = await staffRequest("/api/staff/session");
-  const staff: { name: string } | undefined = session?.ok ? await session.json() : undefined;
+  const staff: StaffSession | undefined = session?.ok ? await session.json() : undefined;
   const forbidden = session?.status === 403;
 
   return (
@@ -21,6 +21,9 @@ export default async function StaffPage() {
             <div className="staff-actions">
               <Link href="/staff/vehicles" className="button">Manage fleet</Link>
               <Link href="/staff/reservations" className="button button-secondary">Find a reservation</Link>
+              {staff.can_create_staff && (
+                <Link href="/staff/accounts/new" className="button button-secondary">Create staff account</Link>
+              )}
             </div>
             <StaffSignOut />
           </>

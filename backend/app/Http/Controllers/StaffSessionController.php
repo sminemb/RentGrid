@@ -34,7 +34,12 @@ class StaffSessionController extends Controller
 
     public function show(Request $request): JsonResponse
     {
-        return response()->json(['name' => $request->user()->name], headers: self::PRIVATE_HEADERS);
+        $staff = $request->user();
+
+        return response()->json([
+            'name' => $staff->name,
+            'can_create_staff' => $staff->can('create-staff-accounts'),
+        ], headers: self::PRIVATE_HEADERS);
     }
 
     public function destroy(Request $request): Response

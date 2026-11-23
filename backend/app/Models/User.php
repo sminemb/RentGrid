@@ -28,11 +28,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_staff' => 'boolean',
+            'is_staff_admin' => 'boolean',
         ];
     }
 
     public function hasStaffAccess(): bool
     {
         return $this->is_staff === true;
+    }
+
+    public function canCreateStaff(): bool
+    {
+        return $this->hasStaffAccess() && $this->is_staff_admin === true;
     }
 }

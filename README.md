@@ -74,13 +74,15 @@ Quotes issued before vehicle details were added require a fresh review for new b
 
 ## Staff access
 
-After running the migrations, use the following command from the backend directory on the server to provision each staff account.
+After running `php artisan migrate`, use the following command from the backend directory on the server to provision a staff administrator.
 
 ```powershell
-php artisan rentgrid:staff-create staff@example.test "Staff Member"
+php artisan rentgrid:staff-create admin@example.test "Staff Administrator" --admin
 ```
 
-The command prompts for the password and stores its hash. Accounts created by other means start without staff access. Open `/staff` on the Next.js origin to sign in and use the **Sign out** button there to end the session.
+The command prompts for the password and stores its hash. Sign in at `/staff` on the Next.js origin, choose **Create staff account**, and enter the staff member’s name, email address, and initial password. They can sign in at `/staff` with those credentials. The command also provisions regular staff when run without `--admin`.
+
+Staff administrators can create regular staff accounts through the dashboard. The `POST /api/staff/accounts` endpoint requires the staff creation permission and CSRF protection. Use **Sign out** on the staff dashboard to end the session.
 
 Choose **Manage fleet** to add or edit an individual vehicle. New vehicles start withdrawn. Publish a listing to open it to bookings, or withdraw it to remove it from customer search and close it to new bookings. A vehicle’s availability calendar shows current and upcoming blocks and confirmed bookings. Choose **Show past blocks** to load ended blocks. Follow a booking reference to look up or cancel the reservation. A new block starts today or later in the business time zone and includes both dates. The calendar rejects blocks that overlap a confirmed booking.
 
