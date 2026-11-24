@@ -47,7 +47,7 @@ test("a staff administrator can create an account that signs in independently", 
     assert.equal(await adminPage.getByLabel("Email address").getAttribute("aria-invalid"), "true");
 
     await adminPage.getByLabel("Email address").fill(staff.email);
-    await adminPage.getByLabel("Confirm password").fill("different password");
+    await adminPage.getByLabel("Confirm password").fill("different staff password");
     await adminPage.getByRole("button", { name: "Create staff account" }).click();
     await adminPage.getByRole("alert").filter({ hasText: "Passwords do not match." }).waitFor();
     assert.equal(await adminPage.getByLabel("Confirm password").getAttribute("aria-invalid"), "true");
