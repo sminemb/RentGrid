@@ -11,13 +11,13 @@ export default async function NewStaffAccountPage() {
   const unavailable = !staff && session?.status !== 403;
 
   return (
-    <main id="main-content" className="shell staff-shell">
+    <main id="main-content" className="shell staff-account-shell">
       <header className="review-heading">
         <Link className="back-link" href="/staff"><Icon name="back" /> Staff access</Link>
         <h1>Create staff account</h1>
       </header>
       {staff?.can_create_staff ? <CreateStaffForm /> : (
-        <section className="trip-panel staff-form">
+        <section className="trip-panel staff-form staff-access-notice">
           {unavailable ? (
             <>
               <p role="alert">We couldn’t load staff access.</p>

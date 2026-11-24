@@ -22,9 +22,11 @@ export function RentalSteps({ current }: { current: (typeof rentalSteps)[number]
 const iconPaths = {
   arrow: <path d="M4 12h15m-6-6 6 6-6 6" />,
   back: <path d="M20 12H5m6 6-6-6 6-6" />,
+  calendar: <><rect x="4" y="6" width="16" height="14" rx="2" /><path d="M8 4v4m8-4v4M4 11h16m-12 4h4" /></>,
   car: <><path d="m5 10 1.5-4h11L19 10M3 16v2m18-2v2M5 13h2m10 0h2" /><rect x="3" y="10" width="18" height="6" rx="2" /></>,
   check: <path d="m5 12 4 4L19 6" />,
   pin: <><path d="M19 10c0 5-7 10-7 10S5 15 5 10a7 7 0 1 1 14 0Z" /><circle cx="12" cy="10" r="2" /></>,
+  "user-plus": <><circle cx="9" cy="8" r="3" /><path d="M3 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2m4-13v6m-3-3h6" /></>,
 };
 
 export function Icon({ name }: { name: keyof typeof iconPaths }) {

@@ -39,10 +39,23 @@ test("a staff administrator can create an account that signs in independently", 
     await adminPage.getByRole("link", { name: "Create staff account" }).click();
     await adminPage.waitForURL("/staff/accounts/new");
     await adminPage.getByLabel("Full name").fill(staff.name);
-    await adminPage.getByLabel("Email address").fill(staff.email);
     await adminPage.getByLabel("Initial password").fill(staff.password);
+    await adminPage.getByLabel("Email address").fill(admin.email);
     await adminPage.getByLabel("Confirm password").fill(staff.password);
     await adminPage.getByRole("button", { name: "Create staff account" }).click();
+    await adminPage.getByRole("alert").filter({ hasText: /email.*already.*taken/i }).waitFor();
+    assert.equal(await adminPage.getByLabel("Email address").getAttribute("aria-invalid"), "true");
+
+    await adminPage.getByLabel("Email address").fill(staff.email);
+    await adminPage.getByLabel("Confirm password").fill("different password");
+    await adminPage.getByRole("button", { name: "Create staff account" }).click();
+    await adminPage.getByRole("alert").filter({ hasText: "Passwords do not match." }).waitFor();
+    assert.equal(await adminPage.getByLabel("Confirm password").getAttribute("aria-invalid"), "true");
+    assert.equal(new URL(adminPage.url()).pathname, "/staff/accounts/new");
+
+    await adminPage.getByLabel("Confirm password").fill(staff.password);
+    await adminPage.getByRole("button", { name: "Create staff account" }).click();
+    await adminPage.waitForURL((url) => url.pathname === "/staff");
     await adminPage.getByRole("status").filter({ hasText: "Staff account created." }).waitFor();
 
     const staffContext = await browser.newContext({ baseURL: origin });

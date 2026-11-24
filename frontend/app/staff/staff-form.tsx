@@ -79,12 +79,16 @@ export function StaffField({ label, error, hint, ...props }: ComponentProps<"inp
   );
 }
 
-export function StaffFeedback({ problem, status }: { problem: ApiProblem; status: string }) {
+export function StaffFeedback({ problem, status, showValidationMessage = false }: {
+  problem: ApiProblem;
+  status: string;
+  showValidationMessage?: boolean;
+}) {
+  const message = problem.errors && !showValidationMessage ? "Check the highlighted fields." : problem.message;
+
   return (
     <>
-      {problem.message && (
-        <p className="error" role="alert">{problem.errors ? "Check the highlighted fields." : problem.message}</p>
-      )}
+      {problem.message && <p className="error" role="alert">{message}</p>}
       {status && <p role="status">{status}</p>}
     </>
   );
